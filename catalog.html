@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор планировки</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-left-bg">
+            <a href="index.html" class="logo-link" title="На главную">
+                <div class="logo-box">
+                    <img src="img/logg.svg" alt="Логотип" class="logo-svg">
+                </div>
+            </a>
+        </div>
+        <span class="header-brand-text">Гид Планировок</span>
+        <nav class="header-right-bg">
+            <a href="index.html" class="nav-link">Главная</a>
+            <a href="index.html#about" class="nav-link">О проекте</a>
+            <a href="exclusive.html" class="nav-link spec-link">Эксклюзив</a>
+            <a href="index.html#contacts" class="nav-link">Контактная информация</a>
+        </nav>
+    </header>
+    <main class="catalog-container">
+        <h1 class="catalog-page-title" id="catalog-title">Планировки</h1>
+
+        <div class="sort-buttons">
+            <button class="sort-btn" id="sort-price-btn" onclick="toggleSort('price')">
+                <span>Сортировать по цене</span>
+                <span class="sort-arrow" id="sort-price-arrow"></span>
+            </button>
+            <button class="sort-btn" id="sort-area-btn" onclick="toggleSort('area')">
+                <span>по площади</span>
+                <span class="sort-arrow" id="sort-area-arrow"></span>
+            </button>
+        </div>
+
+        <section class="catalog-grid" id="catalog-grid"></section>
+    </main>
+    <a href="index.html" class="back-button">На главную</a>
+    <footer class="main-footer minimal-footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Гид Планировок. Все права защищены. Копирование и использование материалов сайта без согласия запрещено.</p>
+            <p><a href="https://docs.github.com/ru/site-policy" target="_blank" class="privacy-link">Правила конфиденциальности и условия использования</a></p>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+        const catalogData = {
+            'studio': { 
+                title: 'Студии', 
+                items: [
+                    { img: 'img/studio/12905800.webp', price: '2 905 800', number: '№1', area: 16.55  },
+                    { img: 'img/studio/25954515.webp', price: '5 954 515', number: '№2', area: 30.2  },
+                    { img: 'img/studio/37461825.webp', price: '7 461 825', number: '№3', area: 36.2  },
+                    { img: 'img/studio/44181625.webp', price: '4 181 625', number: '№4', area: 28.35  },
+                    { img: 'img/studio/54018640.webp', price: '4 018 640', number: '№5', area: 30.56  },
+                    { img: 'img/studio/63401660.webp', price: '3 401 660', number: '№6', area: 24.04  },
+                    { img: 'img/studio/72940630.webp', price: '2 940 630', number: '№7', area: 22.11  },
+                    { img: 'img/studio/83112200.webp', price: '3 112 200', number: '№8', area: 23.40  },
+                    { img: 'img/studio/92717450.webp', price: '2 717 450', number: '№9', area: 23.63  },
+                    { img: 'img/studio/103082800.webp', price: '3 082 800', number: '№10', area: 25.69  },
+                    { img: 'img/studio/113902000.webp', price: '3 902 000', number: '№11', area: 23.51  },
+                    { img: 'img/studio/123970000.webp', price: '3 970 000', number: '№12', area: 27.37  },
+                    { img: 'img/studio/133622460.webp', price: '3 622 460', number: '№13', area: 26.20  },
+                    { img: 'img/studio/143908351.webp', price: '3 908 351', number: '№14', area: 29.47  },
+                    { img: 'img/studio/155837030.webp', price: '5 837 030', number: '№15', area: 35.81  },
+                    { img: 'img/studio/164277820.webp', price: '4 277 820', number: '№16', area: 25.77  },
+                ] 
+            },
+            '1room': { 
+                title: '1-комнатные квартиры', 
+                items: [
+                    { img: 'img/1room/175856200.webp', price: '5 856 200', number: '№17', area: 32.30  },
+                    { img: 'img/1room/185860575.webp', price: '5 860 575', number: '№18', area: 28.50  },
+                    { img: 'img/1room/195931400.webp', price: '5 931 400', number: '№19', area: 32.60  },
+                    { img: 'img/1room/207134600.webp', price: '7 134 600', number: '№20', area: 39.20  },
+                    { img: 'img/1room/217606480.webp', price: '7 606 480', number: '№21', area: 42.70  },
+                    { img: 'img/1room/227650375.webp', price: '7 650 375', number: '№22', area: 45.50  },
+                    { img: 'img/1room/235935600.webp', price: '5 935 600', number: '№23', area: 41.80  },
+                    { img: 'img/1room/245273880.webp', price: '5 273 880', number: '№24', area: 37.14  },
+                    { img: 'img/1room/258462400.webp', price: '8 462 400', number: '№25', area: 51.60  },
+                    { img: 'img/1room/265468400.webp', price: '5 468 400', number: '№26', area: 37.20  },
+                    { img: 'img/1room/275747700.webp', price: '5 747 700', number: '№27', area: 39.35  },
+                    { img: 'img/1room/285828550.webp', price: '5 828 550', number: '№28', area: 39.65  },
+                    { img: 'img/1room/295777200.webp', price: '5 777 200', number: '№29', area: 40.40  },
+                    { img: 'img/1room/304960910.webp', price: '4 960 910', number: '№30', area: 35.69  },
+                    { img: 'img/1room/315626590.webp', price: '5 626 590', number: '№31', area: 41.07  },
+                    { img: 'img/1room/324725000.webp', price: '4 725 000', number: '№32', area: 37.80  },
+                    { img: 'img/1room/334825000.webp', price: '4 825 000', number: '№33', area: 38.60  },
+                    { img: 'img/1room/344285000.webp', price: '4 285 000', number: '№34', area: 35.87  },
+                    { img: 'img/1room/353999999.webp', price: '3 999 999', number: '№35', area: 39.24  },
+                    { img: 'img/1room/365202600.webp', price: '5 202 600', number: '№36', area: 45.69  },
+                    { img: 'img/1room/37.webp', price: '5 272 750', number: '№37', area: 45.98  },
+                    { img: 'img/1room/386262100.webp', price: '6 262 100', number: '№38', area: 48.49  },
+                    { img: 'img/1room/396766500.webp', price: '6 766 500', number: '№39', area: 52.35  },
+                    { img: 'img/1room/404845000.webp', price: '4 845 000', number: '№40', area: 32.85  },
+                    { img: 'img/1room/416399000.webp', price: '6 399 000', number: '№41', area: 41.59  },
+                    { img: 'img/1room/426012000.webp', price: '6 012 000', number: '№42', area: 41.78  },
+                    { img: 'img/1room/435539488.webp', price: '5 539 488', number: '№43', area: 43.04  },
+                    { img: 'img/1room/445675680.webp', price: '5 675 680', number: '№44', area: 37.34  },
+                    { img: 'img/1room/456675840.webp', price: '6 675 840', number: '№45', area: 43.92  },
+                    { img: 'img/1room/465870440.webp', price: '5 870 440', number: '№46', area: 38.80  },
+                    { img: 'img/1room/476729800.webp', price: '6 729 800', number: '№47', area: 46.00  },
+                    { img: 'img/1room/484750460.webp', price: '4 750 460', number: '№48', area: 30.20  },
+                    { img: 'img/1room/496143660.webp', price: '6 143 660', number: '№49', area: 37.01  },
+                    { img: 'img/1room/507217800.webp', price: '7 217 800', number: '№50', area: 47.80  },
+                    { img: 'img/1room/515457240.webp', price: '5 457 240', number: '№51', area: 33.48  },
+                ] 
+            },
+            '2room': { 
+                title: '2-комнатные квартиры', 
+                items: [
+                    { img: 'img/2room/5214403348.webp', price: '14 403 348', number: '№52', area: 71.10  },
+                    { img: 'img/2room/538314500.webp', price: '8 314 500', number: '№53', area: 49.50  },
+                    { img: 'img/2room/547928800.webp', price: '7 928 800', number: '№54', area: 58.30  },
+                    { img: 'img/2room/558275500.webp', price: '8 275 500', number: '№55', area: 61.30  },
+                    { img: 'img/2room/567213220.webp', price: '7 213 220', number: '№56', area: 53.83  },
+                    { img: 'img/2room/578947180.webp', price: '8 947 180', number: '№57', area: 66.77  },
+                    { img: 'img/2room/587371216.webp', price: '7 371 216', number: '№58', area: 54.24  },
+                    { img: 'img/2room/597826940.webp', price: '7 826 940', number: '№59', area: 64.90  },
+                    { img: 'img/2room/606510000.webp', price: '6 510 000', number: '№60', area: 62.00  },
+                    { img: 'img/2room/617505460.webp', price: '7 505 460', number: '№61', area: 66.42  },
+                    { img: 'img/2room/626118350.webp', price: '6 118 350', number: '№62', area: 58.27  },
+                    { img: 'img/2room/638010000.webp', price: '8 010 000', number: '№63', area: 67.02  },
+                    { img: 'img/2room/648140800.webp', price: '8 140 800', number: '№64', area: 68.37  },
+                    { img: 'img/2room/657264400.webp', price: '7 264 400', number: '№65', area: 66.04  },
+                    { img: 'img/2room/669622050.webp', price: '9 622 050', number: '№66', area: 84.27  },
+                    { img: 'img/2room/679242400.webp', price: '9 242 400', number: '№67', area: 77.40  },
+                    { img: 'img/2room/687077000.webp', price: '7 077 000', number: '№68', area: 43.81  },
+                    { img: 'img/2room/698352000.webp', price: '8 352 000', number: '№69', area: 59.04  },
+                    { img: 'img/2room/70.webp', price: '8 382 000', number: '№70', area: 59.90  },
+                    { img: 'img/2room/71.webp', price: '8 594 000', number: '№71', area: 62.92  },
+                    { img: 'img/2room/726510443.webp', price: '6 510 443', number: '№72', area: 55.53  },
+                    { img: 'img/2room/737386624.webp', price: '7 386 624', number: '№73', area: 64.96  },
+                    { img: 'img/2room/748862500.webp', price: '8 862 500', number: '№74', area: 62.05  },
+                    { img: 'img/2room/759876870.webp', price: '9 876 870', number: '№75', area: 62.91  },
+                    { img: 'img/2room/767616070.webp', price: '7 616 070', number: '№76', area: 53.90  },
+                    { img: 'img/2room/778757710.webp', price: '8 757 710', number: '№77', area: 66.70  },
+                    { img: 'img/2room/78.webp', price: '8 246 560', number: '№78', area: 59.20  },
+                    { img: 'img/2room/797628820.webp', price: '7 628 820', number: '№79', area: 47.98  },
+                    { img: 'img/2room/807785600.webp', price: '7 785 600', number: '№80', area: 48.66  },
+                    { img: 'img/2room/818675760.webp', price: '8 675 760', number: '№81', area: 58.62  },
+                    { img: 'img/2room/8210120500.webp', price: '10 120 500', number: '№82', area: 77.85  },
+                    { img: 'img/2room/8310388400.webp', price: '10 388 400', number: '№83', area: 78.70  },
+                ]
+            },
+            '3room': { 
+                title: '3-комнатные квартиры', 
+                items: [
+                    { img: 'img/3room/8416316240.webp', price: '16 316 240', number: '№84', area: 84.52  },
+                    { img: 'img/3room/8518022350.webp', price: '18 022 350', number: '№85', area: 87.96  },
+                    { img: 'img/3room/8618640988.webp', price: '18 640 988', number: '№86', area: 92.01  },
+                    { img: 'img/3room/8711501000.webp', price: '11 501 000', number: '№87', area: 77.00  },
+                    { img: 'img/3room/8810139400.webp', price: '10 139 400', number: '№88', area: 77.40  },
+                    { img: 'img/3room/8910036200.webp', price: '10 036 200', number: '№89', area: 77.81  },
+                    { img: 'img/3room/9010036201.webp', price: '10 036 201', number: '№90', area: 78.30  },
+                    { img: 'img/3room/918982270.webp', price: '8 982 270', number: '№91', area: 69.63  },
+                    { img: 'img/3room/929651780.webp', price: '9 651 780', number: '№92', area: 74.82  },
+                    { img: 'img/3room/938477010.webp', price: '8 477 010', number: '№93', area: 64.71  },
+                    { img: 'img/3room/9411327570.webp', price: '11 327 570', number: '№94', area: 86.47  },
+                    { img: 'img/3room/958592150.webp', price: '8 592 150', number: '№95', area: 81.83  },
+                    { img: 'img/3room/968325420.webp', price: '8 325 420', number: '№96', area: 73.67  },
+                    { img: 'img/3room/978764860.webp', price: '8 764 860', number: '№97', area: 85.93  },
+                    { img: 'img/3room/9810060500.webp', price: '10 060 500', number: '№98', area: 88.55  },
+                    { img: 'img/3room/999452000.webp', price: '9 452 000', number: '№99', area: 62.12  },
+                    { img: 'img/3room/1009376000.webp', price: '9 376 000', number: '№100', area: 64.24  },
+                    { img: 'img/3room/10110771000.webp', price: '10 771 000', number: '№101', area: 77.74  },
+                    { img: 'img/3room/1029988000.webp', price: '9 988 000', number: '№102', area: 76.53  },
+                    { img: 'img/3room/103.webp', price: '10 221 999', number: '№103', area: 79.60  },
+                    { img: 'img/3room/1048758950.webp', price: '8 758 950', number: '№104', area: 83.95  },
+                    { img: 'img/3room/1057410000.webp', price: '7 410 000', number: '№105', area: 64.13  },
+                    { img: 'img/3room/10611734080.webp', price: '11 734 080', number: '№106', area: 80.48  },
+                    { img: 'img/3room/10710614240.webp', price: '10 614 240', number: '№107', area: 84.24  },
+                    { img: 'img/3room/10811095560.webp', price: '11 095 560', number: '№108', area: 88.06  },
+                    { img: 'img/3room/10910438560.webp', price: '10 438 560', number: '№109', area: 79.20  },
+                    { img: 'img/3room/1109091060.webp', price: '9 091 060', number: '№110', area: 68.20  },
+                    { img: 'img/3room/1119727620.webp', price: '9 727 620', number: '№111', area: 73.14  },
+                    { img: 'img/3room/11212380130.webp', price: '12 380 130', number: '№112', area: 95.97  },
+                    { img: 'img/3room/11310158120.webp', price: '10 158 120', number: '№113', area: 80.62  },
+
+                ] 
+            },
+            '4room': { 
+                title: '4-комнатные и более', 
+                items: [
+                    { img: 'img/4room/11452500000.webp', price: '52 500 000', number: '№114', area: 157.45  },
+                    { img: 'img/4room/11521443950.webp', price: '21 443 950', number: '№115', area: 144.50  },
+                    { img: 'img/4room/11626364890.webp', price: '26 364 890', number: '№116', area: 176.31  },
+                    { img: 'img/4room/11724068508.webp', price: '24 068 508', number: '№117', area: 118.45  },
+                    { img: 'img/4room/11819669647.webp', price: '19 669 647', number: '№118', area: 104.23  },
+                    { img: 'img/4room/11926962424.webp', price: '26 962 424', number: '№119', area: 132.64  },
+                    { img: 'img/4room/12011363280.webp', price: '11 363 280', number: '№120', area: 100.35  },
+                    { img: 'img/4room/12128710000.webp', price: '28 710 000', number: '№121', area: 130.90  },
+                ] 
+            }
+        };
+        const params = new URLSearchParams(window.location.search);
+        const currentType = params.get('type');
+        const grid = document.getElementById('catalog-grid');
+        const titleElement = document.getElementById('catalog-title');
+
+        // Текущее состояние сортировки: null (не сортировано), либо {field: 'price'|'area', direction: 'desc'|'asc'}
+        let currentSort = null;
+
+        function parseNumber(value) {
+            if (typeof value === 'number') return value;
+            return parseInt(String(value).replace(/\D/g, ''), 10) || 0;
+        }
+
+        // Кэш уже созданных карточек — при пересортировке переиспользуем их
+        // (просто меняем порядок в DOM), а не создаём заново. Так браузеру не
+        // приходится заново декодировать уже загруженные картинки при каждом клике.
+        const cardCache = new Map();
+
+        function renderGrid(items) {
+            items.forEach((apartment) => {
+                const key = apartment.number || apartment.img;
+                let card = cardCache.get(key);
+                if (!card) {
+                    card = document.createElement('a');
+                    card.href = `details.html?img=${encodeURIComponent(apartment.img)}&price=${encodeURIComponent(apartment.price)}&number=${encodeURIComponent(apartment.number || '')}`;
+                    card.className = 'apartment-card';
+                    card.style.textDecoration = 'none';
+                    card.innerHTML = `
+                        <div class="apartment-img-placeholder">
+                            <img src="${apartment.img}" decoding="async" alt="Планировка" onerror="this.src='img/studio-1.jpg'">
+                        </div>
+                        <div class="apartment-info-tag">
+                            <span class="price-text">от ${apartment.price} ₽</span>
+                            <span class="apartment-number">${apartment.number || ''}</span>
+                        </div>
+                    `;
+                    cardCache.set(key, card);
+                    grid.appendChild(card);
+                    // Плавное появление только для новых карточек (первая отрисовка)
+                    setTimeout(() => card.classList.add('visible'), 50);
+                } else {
+                    // Карточка уже существует и уже загружена — просто переставляем
+                    // её в нужное место в DOM (это НЕ вызывает повторную загрузку картинки)
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function getSortedItems() {
+            const items = catalogData[currentType].items.slice();
+            if (!currentSort) return items;
+            const field = currentSort.field;
+            items.sort((a, b) => {
+                const diff = parseNumber(a[field]) - parseNumber(b[field]);
+                return currentSort.direction === 'desc' ? -diff : diff;
+            });
+            return items;
+        }
+
+        function updateSortButtons() {
+            const priceArrow = document.getElementById('sort-price-arrow');
+            const areaArrow = document.getElementById('sort-area-arrow');
+            const priceBtn = document.getElementById('sort-price-btn');
+            const areaBtn = document.getElementById('sort-area-btn');
+            priceArrow.textContent = '';
+            areaArrow.textContent = '';
+            priceBtn.classList.remove('active');
+            areaBtn.classList.remove('active');
+            if (currentSort) {
+                const arrow = currentSort.direction === 'desc' ? '▼' : '▲';
+                if (currentSort.field === 'price') {
+                    priceArrow.textContent = arrow;
+                    priceBtn.classList.add('active');
+                } else {
+                    areaArrow.textContent = arrow;
+                    areaBtn.classList.add('active');
+                }
+            }
+        }
+
+        function toggleSort(field) {
+            if (currentSort && currentSort.field === field) {
+                // Повторный клик по той же кнопке — меняем направление
+                currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+            } else {
+                // Первый клик — от дорогой/большой к дешёвой/маленькой
+                currentSort = { field: field, direction: 'desc' };
+            }
+            updateSortButtons();
+            renderGrid(getSortedItems());
+        }
+
+        if (catalogData[currentType]) {
+            const data = catalogData[currentType];
+            titleElement.innerText = data.title; 
+            renderGrid(data.items);
+        }
+    </script>
+</body>
+</html>

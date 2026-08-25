@@ -1,0 +1,1418 @@
+/* ============================================================
+   1. БАЗА: сброс, тело страницы, фон, защита картинок, анимации появления
+   ============================================================ */
+
+html {
+    scroll-behavior: smooth; 
+    background-color: #1a1a1a; 
+    overflow-x: hidden;
+    overflow-y: scroll;
+    overscroll-behavior-y: none; /* полностью убирает "оттягивание"/отскок на границах страницы */
+    -webkit-tap-highlight-color: transparent;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+body {
+    position: relative;
+    font-family: 'Inter', sans-serif;
+    color: #ffffff;
+    min-height: 100vh; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* Изображения планировок и карточек: запрет сохранения/долгого нажатия/перетаскивания.
+   Полностью защитить картинки в браузере невозможно, но это убирает стандартные способы
+   (меню "Сохранить изображение", перетаскивание, drag&drop) для обычного пользователя. */
+img {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    pointer-events: none;
+}
+
+/* ============================================================
+   ФОНОВАЯ КАРТИНКА
+   Обычные страницы: фон фиксирован относительно окна браузера.
+   Опросник: .survey-page переопределяет это поведение ниже и
+   сохраняет свою стабильную мобильную схему.
+   ============================================================ */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -2;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(12, 12, 12, 0.915) 0%,
+        rgba(11, 11, 11, 0.85) 62%,
+        rgba(7, 7, 7, 0.96) 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -3;
+    pointer-events: none;
+    background: url('img/1799-1.webp') center center / cover no-repeat;
+}
+
+/* На странице опросника фон остаётся в прежней схеме:
+   не фиксируем его относительно viewport, чтобы не вмешиваться
+   в уже настроенную мобильную работу с адресной строкой Chrome. */
+body.survey-page::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image: linear-gradient(
+        180deg,
+        rgba(12, 12, 12, 0.915) 0%,
+        rgba(11, 11, 11, 0.85) 62%,
+        rgba(7, 7, 7, 0.96) 100%
+    );
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+body.survey-page::after {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    background: url('img/1799-1.webp') center top / cover no-repeat;
+}
+
+
+/* ============================================================
+   СТАБИЛЬНЫЙ ФОН НА МОБИЛЬНЫХ ОБЫЧНЫХ СТРАНИЦАХ
+   Chrome на Android меняет visual viewport, когда прячет/показывает
+   адресную строку. Фиксированный фон с размером 100% пересчитывается
+   вместе с viewport и из-за этого может "прыгать".
+
+   Для обычных страниц фон остаётся fixed, но его высота берётся из
+   large viewport (lvh) — самого большого состояния viewport. Поэтому
+   скрытие адресной строки не меняет масштаб фоновой картинки.
+
+   .survey-page намеренно НЕ попадает под это правило: его текущая
+   схема остаётся полностью нетронутой.
+   ============================================================ */
+@media (max-width: 700px) {
+    body:not(.survey-page)::before,
+    body:not(.survey-page)::after {
+        top: 0;
+        right: auto;
+        bottom: auto;
+        left: 0;
+        width: 100%;
+        height: 100vh;   /* fallback для старых браузеров */
+        height: 100lvh;  /* стабильная высота большого viewport */
+    }
+}
+
+main {
+    flex: 1 0 auto;
+    width: 100%;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in-element {
+    animation: fadeInUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+}
+
+.smooth-fade {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: smoothAppear 0.8s ease forwards;
+}
+
+@keyframes smoothAppear {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.delay-1 { animation-delay: 0.1s; }
+.delay-2 { animation-delay: 0.3s; }
+.delay-3 { animation-delay: 0.5s; }
+
+/* ============================================================
+   2. СТИЛИ И ХОВЕРЫ КАРТОЧЕК (ПК)
+   ============================================================ */
+
+
+.apartment-card, .exclusive-card {
+    transition: transform 0.6s ease, box-shadow 0.6s ease, opacity 0.6s ease, filter 0.4s ease !important; 
+    cursor: pointer;
+    opacity: 0;
+    transform: translate3d(0, 20px, 0); /* 3D-трансформация для старта */
+    
+    /* Сглаживание краев и устранение ряби в Chromium/Edge: */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    will-change: transform, filter; 
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+}
+
+/* Затемнение остальных карточек каталога/эксклюзива при наведении на одну из них */
+/* Только для устройств с полноценным hover (мышь) — на тачскринах эта дим-подсветка не нужна */
+@media (hover: hover) and (pointer: fine) {
+    .catalog-grid:hover .apartment-card:not(:hover),
+    .exclusive-grid:hover .exclusive-card:not(:hover) {
+        filter: brightness(0.5);
+    }
+}
+
+.exclusive-card.visible,
+.apartment-card.visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0); /* Плавное появление в 3D */
+}
+
+.apartment-card:hover, .exclusive-card:hover {
+    transform: translate3d(0, -8px, 0) !important; /* Движение вверх тоже в 3D */
+    box-shadow: 0 15px 30px rgba(134, 122, 104, 0.258) !important;
+    text-decoration: none; 
+}
+
+.apartment-img-placeholder img, 
+.exclusive-img-slot img {
+    width: 90%;
+    height: 90%;
+    object-fit: contain; 
+    transition: transform 0.5s ease !important;
+    background-color: #ffffff; 
+    background-clip: padding-box; 
+    border-radius: 8px;
+    padding: 10px;
+    
+    /* Сглаживание самой картинки: */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translateZ(0); 
+}
+
+.apartment-card:hover .apartment-img-placeholder img,
+.exclusive-card:hover .exclusive-img-slot img {
+    /* Зум картинки переведен в 3D для устранения ряби: */
+    transform: scale3d(1.05, 1.05, 1) !important;
+}
+
+/* ЗАПЛАТКА ДЛЯ СТЫКА: перекрываем микро-щель между картинкой и нижней плашкой */
+.apartment-info-tag,
+.exclusive-tag {
+    position: relative; /* Нужно для работы псевдоэлемента */
+}
+
+.apartment-info-tag::before,
+.exclusive-tag::before {
+    content: '';
+    position: absolute;
+    top: -2px; /* Залезаем на 2 пикселя вверх, перекрывая любой стык */
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: inherit; /* Берет цвет самой плашки */
+    z-index: -1; /* Прячем под содержимое плашки (текст/кнопки) */
+}
+
+/* ============================================================
+   3. КНОПКИ И СВЯЗЬ (Telegram/WhatsApp/Max, кнопка "Назад")
+   ============================================================ */
+
+.tg-capsule-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 30px auto 0; 
+    padding: 15px 40px;
+    background-color: #0088cc;
+    color: white;
+    font-size: 20px;
+    font-family: inherit;
+    border: none;
+    border-radius: 50px; 
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.tg-capsule-btn:hover {
+    background-color: #0077b3;
+    transform: scale(1.05); 
+    box-shadow: 0 4px 15px rgba(0, 136, 204, 0.4);
+}
+
+.tg-icon {
+    width: 28px;
+    height: 28px;
+}
+
+.wa-btn {
+    background-color: #25D366 !important; 
+    border-color: #25D366 !important;
+}
+
+.wa-btn:hover {
+    background-color: #128C7E !important; 
+    border-color: #128C7E !important;
+    box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4) !important;
+}
+.contact-buttons {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.contact-buttons .tg-capsule-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 12px 14px !important;
+    font-size: 15px !important;
+    gap: 7px !important;
+    white-space: nowrap;
+    margin: 0 !important;
+}
+
+.contact-buttons .tg-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.contact-buttons .btn-label {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .contact-buttons .tg-capsule-btn {
+        padding: 10px 6px !important;
+        gap: 5px !important;
+    }
+    .contact-buttons .tg-icon {
+        width: 16px;
+        height: 16px;
+    }
+    .contact-buttons .btn-label {
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 360px) {
+    .contact-buttons .tg-capsule-btn {
+        padding: 9px 4px !important;
+        gap: 4px !important;
+    }
+    .contact-buttons .btn-label {
+        font-size: 12px;
+    }
+    .contact-buttons .tg-icon {
+        width: 15px;
+        height: 15px;
+    }
+}
+.back-button {
+    position: fixed; 
+    bottom: 30px;
+    right: 50px;
+    background-color: #1a1a1a; 
+    color: #a0a0a0;
+    border: 1px solid #2e2e2e;
+    padding: 15px 35px;
+    border-radius: 50px; 
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background-color: #c5a880; 
+    color: #121212; 
+    border-color: #c5a880;
+    transform: translateY(-3px); 
+    box-shadow: 0 10px 20px rgba(197, 168, 128, 0.3); 
+}
+
+
+/* ============================================================
+   4. ШАПКА САЙТА (ФИКСИРОВАННАЯ, 1920px)
+   ============================================================ */
+
+
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 116px;
+    z-index: 1000;
+    
+    background-color: rgba(23, 23, 23, 0.65); 
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px); 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+}
+
+.header-left-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 179px;
+    height: 116px;
+    background-color: #1a1a1a;
+    border-bottom-right-radius: 8px;
+}
+
+.logo-link {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.logo-box {
+    position: absolute;
+    top: 10px;
+    left: 22px;
+    width: 123px; 
+    height: 100px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+}
+
+.logo-link:hover .logo-svg {
+    opacity: 0.8;
+}
+
+.logo-svg {
+    width: 100%;  
+    height: 100%; 
+    object-fit: contain;
+}
+
+.header-brand-text {
+    position: absolute;
+    top: 46px; 
+    left: 212px; 
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #ffffff;
+}
+
+.header-right-bg {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1119px; 
+    max-width: calc(100% - 420px); 
+    height: 116px;
+    background-color: #1a1a1a;
+    border-bottom-left-radius: 8px;
+    display: flex;
+    justify-content: space-around; 
+    align-items: center;
+    padding: 0 50px;
+}
+
+.nav-link {
+    color: #a0a0a0;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #ffffff;
+}
+
+.spec-link {
+    color: #c5a880;
+    font-weight: 600;
+}
+
+
+/* ============================================================
+   5. ГЛАВНАЯ СТРАНИЦА (index.html)
+   ============================================================ */
+
+.main-container {
+    padding-top: 116px;
+    width: 100%;
+    max-width: 1920px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    position: relative;
+}
+
+.hero-section {
+    position: relative;
+    width: 100%;
+    height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;   
+    justify-content: center;
+    gap: 15px;
+}
+
+.main-title {
+    display: none;
+    font-size: 48px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.secondary-title {
+    font-size: 48px; 
+    font-weight: 700; 
+    letter-spacing: -0.02em; 
+    text-align: center;
+    color: #f8f4f0;
+    margin: 0;
+}
+
+.main-subtitle {
+    font-size: 20px;
+    color: #888483;
+    text-align: center;
+    margin: 0;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 440px);
+    gap: 40px;
+    justify-content: center;
+    padding: 20px 0 100px 0;
+}
+
+.category-card {
+    width: 440px;
+    height: 459px;
+    text-decoration: none;
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    background-color: #1e1e1e;
+    box-shadow: 0 10px 30px rgb(0, 0, 0);
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+.category-card:hover {
+    transform: translate3d(0, -8px, 0);
+}
+.card-image-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+/* Оставляем маску ТОЛЬКО для главных карточек (index.html) */
+.card-image-wrapper {
+    position: relative;
+    overflow: hidden;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
+    mask-image: radial-gradient(white, black);
+    isolation: isolate;
+    transform: translateZ(0);
+}
+
+/* Убираем выделение текста долгим тапом на кликабельных карточках/кнопках (не на обычном тексте сайта) */
+.category-card, .catalog-card, .exclusive-card, .apartment-card,
+.tg-capsule-btn, .back-button, .nav-link, .logo-link {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Для слотов с планировками убираем маску, оставляя изоляцию */
+.apartment-img-placeholder,
+.exclusive-img-slot {
+    position: relative;
+    overflow: hidden;
+}
+.card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card-overlay {
+    position: absolute;
+    inset: -2px;
+    border-radius: 18px;
+    background-color: rgba(0, 0, 0, 0.7);
+    transition: background-color 0.4s ease, backdrop-filter 0.4s ease, -webkit-backdrop-filter 0.4s ease;
+    z-index: 1;
+    /* Убирает субпиксельные белые щели во время движения/анимации: */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    outline: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.category-card:hover .card-overlay {
+    background-color: rgba(7, 6, 6, 0.866); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px); 
+}
+
+.category-card:hover .card-img {
+    transform: scale(1.03);
+}
+
+.card-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-size: 24px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 2;
+    transition: all 0.4s ease;
+    width: 90%;
+}
+
+.category-card:hover .card-text {
+    color: #edcc9e; 
+    -webkit-text-stroke: 0; 
+    letter-spacing: 0.05em;
+    text-shadow: 0 0 10px rgba(194, 176, 114, 0.489), 
+                 0 0 20px rgba(182, 179, 116, 0.41); 
+}
+
+.exclusive-accent {
+    border: 1px solid rgba(197, 168, 128, 0.3);
+}
+
+.exclusive-accent .card-text {
+    color: #edcc9e;
+}
+
+/* Карточка "+ Эксклюзивные планировки": оверлей всегда затемнён и заблюрен,
+   даже без наведения. При наведении меняется только подъём/зум — как у остальных карточек. */
+.exclusive-accent .card-overlay {
+    background-color: rgba(7, 6, 6, 0.866);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.about-section, .contacts-section {
+    width: 100%;
+    padding: 100px 0;
+    background: #161616;
+    border-top: 1px solid #222;
+}
+
+.contacts-section {
+    background: #1a1a1a;
+}
+
+.section-content {
+    width: 1400px;
+    margin: 0 auto;
+}
+
+.section-content h2 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: #c5a880;
+}
+
+.section-content p {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #b0b0b0;
+    max-width: 800px;
+}
+
+.contacts-block p {
+    margin-bottom: 15px;
+}
+
+
+/* ============================================================
+   6. СТРАНИЦА СТАНДАРТНЫХ ПЛАНИРОВОК (catalog.html)
+   ============================================================ */
+
+
+.catalog-container {
+    padding-top: 195px;
+    width: 100%;
+    max-width: 1920px;
+    box-sizing: border-box;
+    margin: 0 auto;
+}
+
+.catalog-page-title {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 31px;
+    color: #ffffff;
+}
+
+.catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 517px);
+    gap: 50px;
+    justify-content: center;
+    padding-bottom: 100px;
+}
+
+/* Кнопки сортировки "по цене" / "по площади" — овальные, как back-button */
+.sort-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 0 auto 40px;
+    flex-wrap: wrap;
+}
+
+.sort-btn {
+    background-color: #1a1a1a;
+    color: #a0a0a0;
+    border: 1px solid #2e2e2e;
+    padding: 12px 28px;
+    border-radius: 50px;
+    font-size: 15px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sort-btn:hover {
+    border-color: #c5a880;
+    color: #ffffff;
+}
+
+.sort-btn.active {
+    background-color: #c5a880;
+    color: #121212;
+    border-color: #c5a880;
+    font-weight: 600;
+}
+
+.sort-btn .sort-arrow {
+    font-size: 13px;
+    line-height: 1;
+}
+
+.apartment-card {
+    width: 517px;
+    height: 521px;
+    background: #242424;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.apartment-img-placeholder {
+    width: 100%;
+    height: 435px;
+    background: #242424;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.apartment-info-tag {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%; 
+    height: 88px;
+    background-color: #222222;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    padding: 0 30px; 
+    box-sizing: border-box; 
+}
+
+.apartment-number {
+    font-size: 18px;
+    color: #7a7a7a; 
+    font-weight: 500;
+}
+
+.price-text {
+    font-size: 22px;
+    font-weight: 600;
+    color: #c5a880;
+}
+
+
+/* ============================================================
+   7. СТРАНИЦА ЭКСКЛЮЗИВНЫХ ПЛАНИРОВОК (exclusive.html)
+   ============================================================ */
+
+.exclusive-container {
+    padding-top: 116px;
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.exclusive-view-wrapper {
+    display: flex;             
+    justify-content: center;   
+    align-items: flex-start;   
+    gap: 60px;                 
+    width: 100%;
+    padding: 0 10px;           
+    box-sizing: border-box;
+}
+
+.exclusive-content-left {
+    max-width: 1182px;        
+    width: 100%;               
+    position: relative;
+}
+
+.exclusive-title {
+    position: absolute;
+    top: 26px; 
+    left: 132px;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+.exclusive-grid {
+    margin-top: 124px; 
+    margin-left: auto; 
+    margin-right: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 374px);
+    gap: 30px;
+    justify-content: center; 
+    padding-top: 40px; 
+    padding-bottom: 100px;
+}
+
+.exclusive-card {
+    width: 374px;
+    height: 459px;
+    background: #242424;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #2c2c2c;
+}
+
+.exclusive-img-slot {
+    width: 100%;
+    height: 383px; 
+    background: #242424;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.exclusive-tag {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100% !important; 
+    height: 78px;
+    background-color: #222222;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    text-align: center;      
+    padding: 0 15px;         
+    box-sizing: border-box !important;
+    font-size: 16px;
+    font-weight: 500;
+    color: #ffffff;
+    border-top: 1px solid #2e2e2e;
+    white-space: normal;     
+    line-height: 1.3;
+    /* Убираем border-top: 1px solid #2e2e2e; */
+}
+.apartment-info-tag::before {
+    content: '';
+    position: absolute;
+    top: -1px; /* Специально вылезаем на 1 пиксель вверх */
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #222222; /* Цвет твоей плашки */
+    z-index: -1; /* Чтобы не перекрывало текст и иконки внутри плашки */
+}
+.exclusive-sidebar-desktop {
+    position: relative;        
+    width: 380px;
+    flex-shrink: 0;           
+    margin-top: 0px;        
+    padding-right: 20px;
+}
+
+.sidebar-title {
+    margin-top: 166px; 
+    font-size: 24px;
+    font-weight: 600;
+    color: #c5a880;
+    line-height: 1.4;
+}
+
+.sidebar-text-block {
+    margin-top: 44px; 
+    font-size: 16px;
+    line-height: 1.8;
+    color: #a0a0a0;
+}
+
+.sidebar-text-block p {
+    margin-bottom: 20px;
+}
+
+#exclusive-step-2 .catalog-container {
+    padding-top: 20px; 
+    margin-top: 0;
+}
+
+#exclusive-step-2 .catalog-page-title {
+    margin-top: 60px;       
+    margin-bottom: 30px;    
+}
+
+
+/* ============================================================
+   8. ФИКС МАКЕТА ДЛЯ СТРАНИЦЫ ДЕТАЛЕЙ (details.html) - ПК версия
+   ============================================================ */
+
+
+.details-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;   
+    padding-top: 200px; 
+    padding-bottom: 100px;
+}
+
+.details-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 80px; 
+    margin-top: 0 !important; 
+    padding: 0 40px; 
+}
+
+.details-right {
+    max-width: 600px; 
+}
+
+.details-title {
+    font-size: 40px;
+    line-height: 1.2;
+    margin-bottom: 20px;
+}
+
+.details-subtitle {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #b0b0b0;
+}
+.social-icons-bar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background-color: #242424;
+    border: 1px solid #333333;
+    border-radius: 50%;
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.social-icon svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+    transition: transform 0.3s ease;
+}
+
+.social-icon:hover {
+    background-color: #c5a880; 
+    border-color: #c5a880;
+    color: #121212;
+    transform: translateY(-4px);
+    box-shadow: 0 6px 18px rgba(197, 168, 128, 0.35);
+}
+
+.social-icon:hover svg {
+    transform: scale(1.1);
+}
+
+
+/* ============================================================
+   9. АДАПТИВНОСТЬ (МЕДИА-ЗАПРОСЫ)
+   ============================================================ */
+
+
+@media (max-width: 1669px) {
+    .main-container, .catalog-container, .exclusive-container {
+        width: 100%;            
+        max-width: 1920px;       
+        margin: 0 auto;          
+        box-sizing: border-box;  
+}
+    
+    .header-brand-text { 
+        font-size: 17px !important; 
+        white-space: normal !important; 
+        max-width: 95px !important; 
+        line-height: 1.2 !important; 
+        top: 38px !important; 
+        left: 200px !important; 
+    }
+
+    .section-content {
+        width: 100% !important;
+        max-width: 1100px !important;
+        margin: 0 auto !important;
+        padding-left: 10px !important;
+        padding-right: 25px !important;
+        box-sizing: border-box !important;
+    }
+
+    .categories-grid, .catalog-grid {
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+        max-width: 1380px !important;
+        width: 100% !important;
+        margin: 0 auto !important; 
+        padding: 20px 28px 90px !important;
+        gap: 20px !important;
+        box-sizing: border-box !important;
+    }
+    
+    .exclusive-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+        max-width: 1200px !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        padding: 40px 28px 90px !important;
+    }
+
+    .category-card, .apartment-card, .exclusive-card {
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: 440 / 459;
+    }
+
+    .apartment-img-placeholder, .exclusive-img-slot {
+        height: 80% !important;
+    }
+    .apartment-info-tag, .exclusive-tag {
+        height: 20% !important;
+    }
+
+    .exclusive-sidebar-desktop {
+         display: none !important; 
+    }
+    .exclusive-content-left {
+         width: 100% !important;
+    }
+    .exclusive-title {
+         margin-left: 0 !important;
+         text-align: center;
+    }
+}
+
+@media (max-width: 1350px) {
+    .details-wrapper {
+        gap: 40px !important; 
+        padding: 0 30px !important;
+    }
+    
+    .details-left .apartment-card {
+        width: 450px !important;
+        height: 460px !important; 
+    }
+    .details-left .apartment-img-placeholder {
+        height: 372px !important; 
+    }
+    
+    .details-title { font-size: 34px !important; margin-bottom: 15px !important; }
+    .details-subtitle { font-size: 17px !important; }
+}
+
+@media (max-width: 1088px) {
+    .header-right-bg .nav-link:nth-child(2) {
+        display: none !important;
+    }
+    .section-content h2 {
+        font-size: 32px !important;
+        margin-bottom: 20px !important;
+    }
+    .section-content p {
+        font-size: 17px !important;
+        line-height: 1.6 !important;
+    }
+    
+    .details-wrapper {
+        gap: 40px !important;
+        padding: 0 20px !important;
+    }
+    .details-left .apartment-card {
+        width: 400px !important;
+        height: 410px !important;
+    }
+    .details-left .apartment-img-placeholder {
+        height: 330px !important; 
+    }
+    .details-left .apartment-info-tag {
+        height: 80px !important;
+    }
+    .details-title { font-size: 32px !important; }
+    .details-subtitle { font-size: 16px !important; }
+    .tg-capsule-btn { font-size: 18px !important; padding: 12px 30px !important; margin-top: 20px !important; }
+}
+
+@media (max-width: 996px) {
+    .header-right-bg .nav-link:first-child {
+        display: none !important;
+    }
+}
+
+@media (max-width: 700px) {
+    /* На мобильных backdrop-filter на фиксированной шапке поверх фиксированного
+       фона — частая причина серых артефактов и рывков при скролле на Android. */
+    .main-header {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        background-color: rgba(23, 23, 23, 0.92) !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .main-header { height: 83px !important; }
+    .header-left-bg { width: 262px !important; height: 83px !important; }
+    .header-right-bg { height: 74px !important; }
+    .logo-box { top: 13px !important; left: 12px !important; width: 80px !important; height: 58px !important; }
+    .header-brand-text { top: 25px !important; left: 111px !important; font-size: 14px !important; }
+
+    .main-container, .exclusive-container { padding-top: 85px !important; }
+    .catalog-container { padding-top: 105px !important;}
+    .apartment-info-tag {
+        padding: 0 8px !important; 
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    .price-text {
+        white-space: nowrap !important; 
+        margin-right: 5px; 
+    }
+
+    .apartment-number {
+        white-space: nowrap !important;
+        text-align: right;
+    }
+    .categories-grid, .catalog-grid, .exclusive-grid {
+        grid-template-columns: repeat(2, 1fr) !important; 
+        gap: 10px !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 15px 18px 60px !important;
+    }
+    .categories-grid {
+        padding-bottom: 30px !important;
+    }
+
+    #exclusive-step-2 .catalog-container {
+        padding-top: 10px !important;
+        margin-top: 0 !important;
+    }
+    #exclusive-step-2 .catalog-page-title {
+        margin-top: 10px !important;
+        margin-bottom: 20px !important;
+        
+    }
+
+    .category-card, .catalog-card, .exclusive-card {
+        min-width: 0 !important; 
+    }
+    
+    .section-content { padding-left: 20px !important; padding-right: 20px !important; }
+    .section-content h2 { font-size: 30px !important; margin-bottom: 20px !important; }
+    .section-content p { font-size: 15px !important; line-height: 1.6 !important; }
+    
+    .card-text { 
+        font-size: 18px !important;
+        white-space: normal !important;
+        line-height: 1.2 !important;
+        text-align: center !important;
+        word-wrap: break-word !important;
+        padding: 5px !important;
+    }
+    
+    .price-text, .apartment-number { font-size: 16px !important; padding-left: 10px !important; }
+    .exclusive-tag { 
+        font-size: 15px !important; 
+        padding: 0 5px !important; 
+        text-align: center; 
+        justify-content: center; 
+        white-space: normal !important;
+        line-height: 1.2 !important;
+    }
+
+    .header-right-bg { justify-content: flex-end; gap: 15px; background: transparent !important; }
+    .nav-link { display: none; }
+    .spec-link { display: block; font-size: 14px; }
+
+    .hero-section { height: auto !important; padding: 24px 0 40px 0 !important; }
+    .main-title, .catalog-page-title { font-size: 28px !important; } 
+    .catalog-page-title { margin-bottom: 15px !important; }
+    .secondary-title { font-size: 28px !important; } 
+    .main-subtitle { font-size: 16px !important; }
+
+    .details-container {
+        padding-top: 20px !important; 
+    }
+    
+    .details-wrapper { 
+        flex-direction: column !important; 
+        gap: 40px !important; 
+        margin-top: 108px !important; 
+        padding: 0 10px; 
+    }
+    
+    .details-left, .details-right { width: 100% !important; }
+    
+    .details-left .apartment-card {
+        width: 100% !important;
+        max-width: 450px !important;
+        height: auto !important;
+        aspect-ratio: 517 / 521;
+        margin: 0 auto;
+    }
+    .details-left .apartment-img-placeholder { height: 80% !important; }
+    .details-left .apartment-info-tag { height: 20% !important; }
+    
+    .details-right {
+        max-width: 100% !important;
+        padding: 0 10px;
+    }
+    .details-title { font-size: 28px !important; text-align: center; }
+    .details-subtitle { font-size: 15px !important; text-align: center; }
+    .tg-capsule-btn { margin: 20px auto 0 !important; }
+    .back-button { bottom: 20px !important; right: 20px !important; padding: 10px 20px !important; font-size: 14px !important; }}
+
+@media (max-width: 586px) {
+    .section-content h2 { font-size: 27px !important; }
+    
+    .card-text { font-size: 16px !important; }
+    .price-text, .apartment-number { font-size: 13px !important; }
+    .exclusive-tag { font-size: 13px !important; }
+
+    .main-title, .catalog-page-title { font-size: 24px !important; } 
+    .secondary-title { font-size: 27px !important; } 
+    .main-subtitle { font-size: 16px !important; } 
+
+    .nav-link { display: none; }
+    .section-content h2 {
+        font-size: 25px !important;
+        margin-bottom: 20px !important;
+    }
+    .details-container {
+        padding-top: 10px !important; 
+    }
+    .details-wrapper {
+        margin-top: 93px !important; 
+    }
+    .details-left .apartment-card {
+        max-width: 320px !important; 
+    }
+    .details-title { font-size: 24px !important; }
+    .details-subtitle { font-size: 14px !important; }
+    .tg-capsule-btn { font-size: 16px !important; padding: 10px 25px !important; }
+
+    /* Компактнее отступы вокруг кнопок сортировки на телефоне */
+    .sort-buttons { margin: 0 auto 15px !important; gap: 10px !important; }
+}
+
+
+/* ============================================================
+   10. ФУТЕР
+   ============================================================ */
+
+
+.main-footer {
+    background: linear-gradient(180deg, #1a1a1a 0%, #161616 100%);
+    border-top: 1px solid #2e2e2e;
+    padding: 50px 0 20px 0; 
+    width: 100%;
+    flex-shrink: 0;
+    margin-top: auto;
+    box-shadow: 0 100px 0 100px #161616; /* небольшой запас под мягкое пружинистое оттягивание, без лишней прокрутки */
+}
+.minimal-footer {
+    padding: 16px 0 !important; 
+}
+
+.minimal-footer .footer-bottom {
+    margin-top: 0 !important;    
+    padding-top: 0 !important;
+    border-top: none !important; 
+}
+
+.footer-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto 30px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 60px;
+    padding: 0 40px;
+    box-sizing: border-box;
+}
+
+.footer-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.footer-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #c5a880; 
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-link {
+    font-size: 20px; 
+    font-weight: 600;
+    color: #ffffff;
+    text-decoration: none;
+    margin-bottom: 10px; 
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #c5a880;
+    transform: translateX(5px); 
+}
+
+.footer-text {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #a0a0a0;
+}
+
+.footer-address {
+    font-size: 18px; 
+    font-weight: 500;
+    color: #ffffff;
+}
+@media (max-width: 1088px) {
+    .footer-container {
+        gap: 40px;
+    }
+    .footer-link {
+        font-size: 18px; 
+    }
+}
+
+@media (max-width: 900px) {
+    .footer-container {
+        grid-template-columns: 1fr; 
+        text-align: center;
+        gap: 40px;
+    }
+    .footer-col {
+        align-items: center; 
+    }
+    .footer-link:hover {
+        transform: none; 
+    }
+}
+.footer-bottom {
+    text-align: center;
+    padding: 20px 20px 6px;
+    margin-top: 10px;
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); 
+    font-size: 12px;
+    color: #a0a0a0; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.footer-bottom p {
+    margin: 3px 0;
+}
+
+.privacy-link {
+    color: #a0a0a0;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.privacy-link:hover {
+    color: #c5a880;
+}

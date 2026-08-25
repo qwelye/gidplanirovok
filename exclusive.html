@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Эксклюзивные планировки</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="main-header">
+        <a href="index.html" style="text-decoration: none; display: flex; align-items: center;">
+            <div class="header-left-bg">
+                <a href="index.html" class="logo-link" title="На главную">
+                    <div class="logo-box">
+                        <img src="img/logg.svg" alt="Логотип" class="logo-svg">
+                    </div>
+                </a>
+            </div>
+            <span class="header-brand-text">Эксклюзивные варианты</span>
+        </a>
+       <nav class="header-right-bg">
+            <a href="index.html" class="nav-link">Главная</a>
+            <a href="index.html#about" class="nav-link">О проекте</a>
+            <a href="index.html#contacts" class="nav-link">Контактная информация</a>
+        </nav>
+    </header>
+    <main class="exclusive-container">
+        <div id="exclusive-step-1" class="exclusive-view-wrapper">
+            <div class="exclusive-content-left">
+                <section class="exclusive-grid">                
+                    <div class="exclusive-card" onclick="showExclusiveDetails('Мастер-спальни')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/master/12320549701.webp" alt="Мастер-спальни"></div>
+                        <div class="exclusive-tag"><span>Мастер-спальни</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('С террасой')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/terrace/13026962424.webp" alt="С террасой"></div>
+                        <div class="exclusive-tag"><span>С террасой</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('Кухня-гостиная более 20 метров')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/kitchen/15424067959.webp" alt="Кухня-гостиная"></div>
+                        <div class="exclusive-tag"><span>Кухня-гостиная более 20 метров</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('Большая лoджия-балкон')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/loggiabalcony/15813253175.webp" alt="Большая лоджия"></div>
+                        <div class="exclusive-tag"><span>Большая лoджия-балкон</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('С окном в ванной')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/window/17023681449.webp" alt="Окно в ванной"></div>
+                        <div class="exclusive-tag"><span>С окном в ванной</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('С постирочной')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/laundry/17611262444.webp" alt="С постирочной"></div>
+                        <div class="exclusive-tag"><span>С постирочной</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('С двумя балконами')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/2balcony/18512247000.webp" alt="Два балкона"></div>
+                        <div class="exclusive-tag"><span>С двумя балконами</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('С ремонтом')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/repair/1968817715.webp" alt="С ремонтом"></div>
+                        <div class="exclusive-tag"><span>С ремонтом</span></div>
+                    </div>
+                    <div class="exclusive-card" onclick="showExclusiveDetails('Нестандартные планировки')">
+                        <div class="exclusive-img-slot"><img src="img/exclusive/custom/2129885200.webp" alt="Нестандартные"></div>
+                        <div class="exclusive-tag"><span>Нестандартные планировки</span></div>
+                    </div>
+                </section>
+            </div>
+            <aside class="exclusive-sidebar-desktop">
+                <h2 class="sidebar-title">В чем суть эксклюзивных планировок?</h2>
+                <div class="sidebar-text-block">
+                    <p>Эксклюзивные форматы жилья созданы для тех, кто ищет бескомпромиссный уровень комфорта и индивидуальности.</p>
+                    <p>Они включают в себя увеличенную высоту потолков, приватные террасы, мастер-спальни с собственными гардеробными и ванными комнатами, а также выделенные зоны под домашние прачечные или кабинеты.</p>
+                    <p>Каждый такой вариант уникален и выпускается в ограниченном количестве в рамках нашего проекта. Выберите интересующий тип, чтобы изучить планировочные решения.</p>
+                </div>
+            </aside>
+            <a href="index.html" class="back-button">На главную</a>
+        </div>
+       <div id="exclusive-step-2" style="display: none;">
+            <div class="catalog-container">
+                <h1 class="catalog-page-title" id="dynamic-exclusive-title">Название категории</h1>
+
+                <div class="sort-buttons">
+                    <button class="sort-btn" id="sort-price-btn" onclick="toggleSort('price')">
+                        <span>Сортировать по цене</span>
+                        <span class="sort-arrow" id="sort-price-arrow"></span>
+                    </button>
+                    <button class="sort-btn" id="sort-area-btn" onclick="toggleSort('area')">
+                        <span>по площади</span>
+                        <span class="sort-arrow" id="sort-area-arrow"></span>
+                    </button>
+                </div>
+
+                <section class="catalog-grid" id="step-2-grid"></section>
+            </div>
+            <button class="back-button" onclick="goBackToCategories()">← Назад к категориям</button>
+        </div>
+    </main>
+    <footer class="main-footer minimal-footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 Гид Планировок. Все права защищены. Копирование и использование материалов сайта без согласия запрещено.</p>
+            <p><a href="https://docs.github.com/ru/site-policy" target="_blank" class="privacy-link">Правила конфиденциальности и условия использования</a></p>
+        </div>
+    </footer>
+    <script src="script.js"></script>
+    <script>
+        const exclusiveData = {
+            'Мастер-спальни': [
+                { img: 'img/exclusive/master/1226510000.webp', price: '6 510 000', number: '№122', area: 62.00  },
+                { img: 'img/exclusive/master/12320549701.webp', price: '20 549 701', number: '№123', area: 104.11  },
+                { img: 'img/exclusive/master/12426962424.webp', price: '26 962 424', number: '№124', area: 132.64  },
+                { img: 'img/exclusive/master/12524068508.webp', price: '24 068 508', number: '№125', area: 118.45  },
+                { img: 'img/exclusive/master/12622904900.webp', price: '22 904 900', number: '№126', area: 115.30  },
+            ],
+            'С террасой': [
+                { img: 'img/exclusive/terrace/12748487500.webp', price: '48 487 500', number: '№127', area: 166.15  },
+                { img: 'img/exclusive/terrace/12881312750.webp', price: '81 312 750', number: '№128', area: 367.06  },
+                { img: 'img/exclusive/terrace/12926935940.webp', price: '26 935 940', number: '№129', area: 95.18  },
+                { img: 'img/exclusive/terrace/13026962424.webp', price: '26 962 424', number: '№130', area: 132.64  },
+                { img: 'img/exclusive/terrace/13124068508.webp', price: '24 068 508', number: '№131', area: 118.45  },
+                { img: 'img/exclusive/terrace/13235301000.webp', price: '35 301 000', number: '№132', area: 84.05  },
+                { img: 'img/exclusive/terrace/13341080000.webp', price: '41 080 000', number: '№133', area: 82.16  },
+                { img: 'img/exclusive/terrace/13415868500.webp', price: '15 868 500', number: '№134', area: 75.30  },
+                { img: 'img/exclusive/terrace/13511893200.webp', price: '11 893 200', number: '№135', area: 116.31  },
+                { img: 'img/exclusive/terrace/1369038800.webp', price: '9 038 800', number: '№136', area: 75.86  },
+                { img: 'img/exclusive/terrace/13710395800.webp', price: '10 395 800', number: '№137', area: 97.51  },
+                { img: 'img/exclusive/terrace/13812189400.webp', price: '12 189 400', number: '№138', area: 146.89  },
+                { img: 'img/exclusive/terrace/13911914100.webp', price: '11 914 100', number: '№139', area: 69.20  },
+                { img: 'img/exclusive/terrace/14012495710.webp', price: '12 495 710', number: '№140', area: 73.10  },
+                { img: 'img/exclusive/terrace/14119623610.webp', price: '19 623 610', number: '№141', area: 114.80  },
+                { img: 'img/exclusive/terrace/14230397709.webp', price: '30 397 709', number: '№142', area: 185.20  },
+                { img: 'img/exclusive/terrace/14312709000.webp', price: '12 709 000', number: '№143', area: 69.04  },
+                { img: 'img/exclusive/terrace/1446394960.webp', price: '6 394 960', number: '№144', area: 37.84  },
+                { img: 'img/exclusive/terrace/1456845200.webp', price: '6 845 200', number: '№145', area: 43.60  },
+                { img: 'img/exclusive/terrace/1467177940.webp', price: '7 177 940', number: '№146', area: 45.43  },
+                { img: 'img/exclusive/terrace/14710324790.webp', price: '10 324 790', number: '№147', area: 77.63  },
+                { img: 'img/exclusive/terrace/14810350990.webp', price: '10 350 990', number: '№148', area: 76.11  },
+                { img: 'img/exclusive/terrace/1499356550.webp', price: '9 356 550', number: '№149', area: 70.35  },
+                { img: 'img/exclusive/terrace/1505131710.webp', price: '5 131 710', number: '№150', area: 30.01  },
+            ],
+            'Кухня-гостиная более 20 метров': [
+                { img: 'img/exclusive/kitchen/15114170000.webp', price: '14 170 000', number: '№151', area: 91.10  },
+                { img: 'img/exclusive/kitchen/15212848000.webp', price: '12 848 000', number: '№152', area: 81.50  },
+                { img: 'img/exclusive/kitchen/15321980586.webp', price: '21 980 586', number: '№153', area: 115.23  },
+                { img: 'img/exclusive/kitchen/15424067959.webp', price: '24 067 959', number: '№154', area: 131.13  },
+                { img: 'img/exclusive/kitchen/15511358900.webp', price: '11 358 900', number: '№155', area: 60.30  },
+                { img: 'img/exclusive/kitchen/15611623500.webp', price: '11 623 500', number: '№156', area: 61.90  },
+            ],
+            'Большая лoджия-балкон': [
+                { img: 'img/exclusive/loggiabalcony/1578216175.webp', price: '8 216 175', number: '№157', area: 53.30  },
+                { img: 'img/exclusive/loggiabalcony/15813253175.webp', price: '13 253 175', number: '№158', area: 82.50  },
+                { img: 'img/exclusive/loggiabalcony/15911501000.webp', price: '11 501 000', number: '№159', area: 77.00  },
+                { img: 'img/exclusive/loggiabalcony/1606887000.webp', price: '6 887 000', number: '№160', area: 48.50  },
+                { img: 'img/exclusive/loggiabalcony/1617509500.webp', price: '7 509 500', number: '№161', area: 65.30  },
+                { img: 'img/exclusive/loggiabalcony/16212262437.webp', price: '12 262 437', number: '№162', area: 63.30  },
+                { img: 'img/exclusive/loggiabalcony/16322947750.webp', price: '22 947 750', number: '№163', area: 131.13  },
+                { img: 'img/exclusive/loggiabalcony/1647264400.webp', price: '7 264 400', number: '№164', area: 66.04  },
+                { img: 'img/exclusive/loggiabalcony/1658764860.webp', price: '8 764 860', number: '№165', area: 85.93  },
+                { img: 'img/exclusive/loggiabalcony/16611377970.webp', price: '11 377 970', number: '№166', area: 100.35  },
+                { img: 'img/exclusive/loggiabalcony/16710918080.webp', price: '10 918 080', number: '№167', area: 80.48  },
+                { img: 'img/exclusive/loggiabalcony/16812634320.webp', price: '12 634 320', number: '№168', area: 69.04  },
+                { img: 'img/exclusive/loggiabalcony/1699609100.webp', price: '9 609 100', number: '№169', area: 59.60  },
+            ],
+            'С окном в ванной': [
+                { img: 'img/exclusive/window/17023681449.webp', price: '23 681 449', number: '№170', area: 108.18  },
+                { img: 'img/exclusive/window/17121980586.webp', price: '21 980 586', number: '№171', area: 115.23  },
+                { img: 'img/exclusive/window/17220299493.webp', price: '20 299 493', number: '№172', area: 88.10  },
+                { img: 'img/exclusive/window/17311655000.webp', price: '11 655 000', number: '№173', area: 63.20  },
+            ],
+            'С постирочной': [
+                { img: 'img/exclusive/laundry/1749752121.webp', price: '9 752 121', number: '№174', area: 47.65  },
+                { img: 'img/exclusive/laundry/17520299493.webp', price: '20 299 493', number: '№175', area: 88.10  },
+                { img: 'img/exclusive/laundry/17611262444.webp', price: '11 262 444', number: '№176', area: 59.68  },
+            ],
+            'С двумя балконами': [
+                { img: 'img/exclusive/2balcony/1776838500.webp', price: '6 838 500', number: '№177', area: 48.50  },
+                { img: 'img/exclusive/2balcony/1788488350.webp', price: '8 488 350', number: '№178', area: 72.55  },
+                { img: 'img/exclusive/2balcony/17912943885.webp', price: '12 943 885', number: '№179', area: 68.59  },
+                { img: 'img/exclusive/2balcony/18023681449.webp', price: '23 681 449', number: '№180', area: 108.18  },
+                { img: 'img/exclusive/2balcony/18111829850.webp', price: '11 829 850', number: '№181', area: 61.36  },
+                { img: 'img/exclusive/2balcony/18211522408.webp', price: '11 522 408', number: '№182', area: 57.60  },
+                { img: 'img/exclusive/2balcony/18313792026.webp', price: '13 792 026', number: '№183', area: 67.00  },
+                { img: 'img/exclusive/2balcony/18416154631.webp', price: '16 154 631', number: '№184', area: 89.03  },
+                { img: 'img/exclusive/2balcony/18512247000.webp', price: '12 247 000', number: '№185', area: 66.70  },
+                { img: 'img/exclusive/2balcony/18622904900.webp', price: '22 904 900', number: '№186', area: 115.30  },
+                { img: 'img/exclusive/2balcony/18714718000.webp', price: '14 718 000', number: '№187', area: 109.25  },
+                { img: 'img/exclusive/2balcony/18812339600.webp', price: '12 339 600', number: '№188', area: 88.12  },
+            ],
+            'С ремонтом': [
+                { img: 'img/exclusive/repair/1893567096.webp', price: '3 567 096', number: '№189', area: 26.64  },
+                { img: 'img/exclusive/repair/1903466124.webp', price: '3 466 124', number: '№190', area: 26.12  },
+                { img: 'img/exclusive/repair/1915539488.webp', price: '5 539 488', number: '№191', area: 43.04  },
+                { img: 'img/exclusive/repair/1926510443.webp', price: '6 510 443', number: '№192', area: 55.53  },
+                { img: 'img/exclusive/repair/1937386624.webp', price: '7 386 624', number: '№193', area: 64.96  },
+                { img: 'img/exclusive/repair/1947390000.webp', price: '7 390 000', number: '№194', area: 64.13  },
+                { img: 'img/exclusive/repair/1958730000.webp', price: '8 730 000', number: '№195', area: 82.58  },
+                { img: 'img/exclusive/repair/1968817715.webp', price: '8 817 715', number: '№196', area: 83.95  },
+                { img: 'img/exclusive/repair/1973633360.webp', price: '3 633 360', number: '№197', area: 26.20  },
+                { img: 'img/exclusive/repair/1983967291.webp', price: '3 967 291', number: '№198', area: 29.47  },
+            ],
+            'Нестандартные планировки': [
+                { img: 'img/exclusive/custom/19913624258.webp', price: '13 624 258', number: '№199', area: 62.30  },
+                { img: 'img/exclusive/custom/20016780996.webp', price: '16 780 996', number: '№200', area: 74.58  },
+                { img: 'img/exclusive/custom/20117263904.webp', price: '17 263 904', number: '№201', area: 91.27  },
+                { img: 'img/exclusive/custom/20222210830.webp', price: '22 210 830', number: '№202', area: 118.47  },
+                { img: 'img/exclusive/custom/20321443950.webp', price: '21 443 950', number: '№203', area: 144.50  },
+                { img: 'img/exclusive/custom/20426364890.webp', price: '26 364 890', number: '№204', area: 176.31  },
+                { img: 'img/exclusive/custom/2057403400.webp', price: '7 403 400', number: '№205', area: 46.20  },
+                { img: 'img/exclusive/custom/2069273600.webp', price: '9 273 600', number: '№206', area: 57.80  },
+                { img: 'img/exclusive/custom/2079612500.webp', price: '9 612 500', number: '№207', area: 77.30 },
+                { img: 'img/exclusive/custom/2088000000.webp', price: '8 000 000', number: '№208', area: 62.08  },
+                { img: 'img/exclusive/custom/20918995286.webp', price: '18 995 286', number: '№209', area: 99.58  },
+                { img: 'img/exclusive/custom/21012265500.webp', price: '12 265 500', number: '№210', area: 66.70  },
+                { img: 'img/exclusive/custom/21122904900.webp', price: '22 904 900', number: '№211', area: 115.30  },
+                { img: 'img/exclusive/custom/2129885200.webp', price: '9 885 200', number: '№212', area: 76.04  },
+            ]
+        };
+        document.addEventListener("DOMContentLoaded", () => {
+            const navEntries = performance.getEntriesByType("navigation");
+            const navType = navEntries.length > 0 ? navEntries[0].type : "";
+        
+            if (navType !== "back_forward" && navType !== "reload" && !document.referrer.includes('details.html')) {
+                sessionStorage.removeItem('savedExclusiveCategory');
+                sessionStorage.removeItem('savedExclusiveScroll');
+            }
+        
+            const savedCategory = sessionStorage.getItem('savedExclusiveCategory');
+            const savedScroll = sessionStorage.getItem('savedExclusiveScroll');
+                    
+            if (savedCategory && exclusiveData[savedCategory]) {
+                showExclusiveDetails(savedCategory, true);
+                if (savedScroll) {
+                    setTimeout(() => {
+                        window.scrollTo({ top: parseInt(savedScroll), behavior: 'instant' });
+                    }, 100);
+                }
+            } else {
+                const exclusiveCards = document.querySelectorAll('#exclusive-step-1 .exclusive-card');
+                exclusiveCards.forEach((card, index) => {
+                    setTimeout(() => {
+                        card.classList.add('visible');
+                    }, 50 + (80 * index)); 
+                });
+            }
+        });
+        
+        let currentSort = null;
+        let currentCategoryName = null;
+
+        function parseNumber(value) {
+            if (typeof value === 'number') return value;
+            return parseInt(String(value).replace(/\D/g, ''), 10) || 0;
+        }
+
+        // Кэш уже созданных карточек (ключ учитывает категорию, т.к. категорий несколько) —
+        // при пересортировке переиспользуем существующие карточки вместо пересоздания,
+        // чтобы браузер не декодировал уже загруженные картинки заново.
+        const exclusiveCardCache = new Map();
+
+        function renderExclusiveGrid(items) {
+            const grid = document.getElementById('step-2-grid');
+            // Сетку чистим только при смене категории (не при сортировке внутри неё) —
+            // сами карточки/картинки при этом не пересоздаются, только отвязываются от DOM,
+            // а из кэша они вернутся мгновенно без повторной загрузки.
+            if (grid.dataset.category !== currentCategoryName) {
+                grid.innerHTML = '';
+                grid.dataset.category = currentCategoryName;
+            }
+            items.forEach((apartment) => {
+                const key = currentCategoryName + '|' + (apartment.number || apartment.img);
+                let card = exclusiveCardCache.get(key);
+                if (!card) {
+                    card = document.createElement('a');
+                    card.href = `details.html?img=${encodeURIComponent(apartment.img)}&price=${encodeURIComponent(apartment.price)}&number=${encodeURIComponent(apartment.number || '')}`;
+                    card.className = 'apartment-card';
+                    card.style.textDecoration = 'none';
+
+                    card.addEventListener('click', () => {
+                        sessionStorage.setItem('savedExclusiveScroll', window.scrollY);
+                    });
+
+                    card.innerHTML = `
+                        <div class="apartment-img-placeholder">
+                            <img src="${apartment.img}" alt="Планировка" loading="lazy" decoding="async" onerror="this.src='img/studio-1.jpg'">
+                        </div>
+                        <div class="apartment-info-tag">
+                            <span class="price-text">от ${apartment.price} ₽</span>
+                            <span class="apartment-number">${apartment.number || ''}</span>
+                        </div>
+                    `;
+                    exclusiveCardCache.set(key, card);
+                    grid.appendChild(card);
+                    setTimeout(() => card.classList.add('visible'), 50);
+                } else {
+                    // Уже создана и загружена — просто переставляем в DOM (без перезагрузки картинки)
+                    grid.appendChild(card);
+                }
+            });
+        }
+
+        function getSortedExclusiveItems() {
+            const items = (exclusiveData[currentCategoryName] || []).slice();
+            if (!currentSort) return items;
+            const field = currentSort.field;
+            items.sort((a, b) => {
+                const diff = parseNumber(a[field]) - parseNumber(b[field]);
+                return currentSort.direction === 'desc' ? -diff : diff;
+            });
+            return items;
+        }
+
+        function updateSortButtons() {
+            const priceArrow = document.getElementById('sort-price-arrow');
+            const areaArrow = document.getElementById('sort-area-arrow');
+            const priceBtn = document.getElementById('sort-price-btn');
+            const areaBtn = document.getElementById('sort-area-btn');
+            if (!priceArrow) return;
+            priceArrow.textContent = '';
+            areaArrow.textContent = '';
+            priceBtn.classList.remove('active');
+            areaBtn.classList.remove('active');
+            if (currentSort) {
+                const arrow = currentSort.direction === 'desc' ? '▼' : '▲';
+                if (currentSort.field === 'price') {
+                    priceArrow.textContent = arrow;
+                    priceBtn.classList.add('active');
+                } else {
+                    areaArrow.textContent = arrow;
+                    areaBtn.classList.add('active');
+                }
+            }
+        }
+
+        function toggleSort(field) {
+            if (currentSort && currentSort.field === field) {
+                currentSort.direction = currentSort.direction === 'desc' ? 'asc' : 'desc';
+            } else {
+                currentSort = { field: field, direction: 'desc' };
+            }
+            updateSortButtons();
+            renderExclusiveGrid(getSortedExclusiveItems());
+        }
+
+        function showExclusiveDetails(categoryName, isRestoring = false) {
+            sessionStorage.setItem('savedExclusiveCategory', categoryName);
+                
+            document.getElementById('exclusive-step-1').style.display = 'none';
+            const step2 = document.getElementById('exclusive-step-2');
+            step2.style.display = 'block';
+            document.getElementById('dynamic-exclusive-title').innerText = categoryName;
+
+            currentCategoryName = categoryName;
+            currentSort = null;
+            updateSortButtons();
+            renderExclusiveGrid(exclusiveData[categoryName] || []);
+                
+            if (!isRestoring) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+        
+        function goBackToCategories() {
+            sessionStorage.removeItem('savedExclusiveCategory');
+            sessionStorage.removeItem('savedExclusiveScroll');
+                
+            document.getElementById('exclusive-step-2').style.display = 'none';
+            document.getElementById('exclusive-step-1').style.display = 'flex';
+                
+            const exclusiveCards = document.querySelectorAll('#exclusive-step-1 .exclusive-card');
+            exclusiveCards.forEach(card => card.classList.remove('visible'));
+            exclusiveCards.forEach((card, index) => {
+                setTimeout(() => {
+                    card.classList.add('visible');
+                }, 50 + (80 * index));
+            });
+                
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

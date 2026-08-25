@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пройди опрос и получи каталог планировок</title>
+<link rel="stylesheet" href="style.css">
+<style>
+    :root {
+        --accent: #f0c987;
+        --accent-dim: #d9a94f;
+        --panel-line: #55524c;
+    }
+
+    body {
+        overflow-x: hidden;
+    }
+
+    .survey-main {
+        max-width: 640px;
+        margin: 0 auto;
+        padding: 130px 20px 40px;
+        position: relative;
+        z-index: 1;
+        /* Центрируем блок по высоте экрана (за вычетом хедера),
+           но безопасно — если контент выше экрана, съезжаем к началу, а не обрезаемся */
+        min-height: calc(100svh - 116px);
+        display: flex;
+        flex-direction: column;
+        justify-content: safe center;
+    }
+
+    /* Фон уже содержит картинку и нижнее затемнение в style.css.
+       Отдельный fixed-градиент здесь удалён: на Android он давал
+       серую полосу и визуальный "залом" при скролле. */
+
+    /* Стеклянная карточка-подложка под весь опрос */
+    .survey-card {
+        background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015));
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 28px;
+        padding: 48px 40px;
+        box-shadow: 0 30px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.04);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        text-align: center;
+        opacity: 0;
+        transform: translateY(24px);
+        animation: surveyCardIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes surveyCardIn {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .survey-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+        border: 1px solid #333;
+        border-radius: 30px;
+        padding: 10px 24px;
+        font-size: 15px;
+        color: var(--accent);
+        margin-bottom: 25px;
+        letter-spacing: 0.2px;
+    }
+    .survey-title {
+        font-size: 34px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #f8f4f0;
+        letter-spacing: -0.3px;
+    }
+    .survey-subtitle {
+        font-size: 16px;
+        color: #999;
+        margin-bottom: 40px;
+    }
+
+    .intro-stats {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 34px;
+        padding-top: 28px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        flex-wrap: wrap;
+    }
+    .intro-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        color: #b8b8b8;
+        font-size: 13px;
+    }
+    .intro-stat svg {
+        width: 22px;
+        height: 22px;
+        color: var(--accent);
+    }
+    .survey-step {
+        display: none;
+        opacity: 0;
+        transform: translateY(14px);
+        transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1), transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .survey-step.pre-active {
+        display: block;
+    }
+    .survey-step.active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .survey-question {
+        font-size: 26px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #fff;
+        letter-spacing: -0.2px;
+    }
+    .survey-hint {
+        font-size: 13px;
+        color: #7d7d7d;
+        margin-bottom: 22px;
+    }
+    #thanks .survey-question {
+        margin-bottom: 20px;
+    }
+    .survey-options {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 30px;
+    }
+    .survey-option {
+        position: relative;
+        background: #1a1a1a;
+        border: 1px solid #2e2e2e;
+        border-radius: 12px;
+        padding: 15px 18px 15px 22px;
+        color: #e8e8e8;
+        font-size: 15.5px;
+        cursor: pointer;
+        transition: background 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+        text-align: left;
+        overflow: hidden;
+    }
+    .survey-option::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 3px;
+        background: var(--accent);
+        transform: scaleY(0);
+        transition: transform 0.25s ease;
+        transform-origin: center;
+    }
+    .survey-option:hover {
+        background: #232323;
+        border-color: #3d3d3d;
+        transform: translateX(2px);
+    }
+    .survey-option.selected {
+        background: #262019;
+        border-color: var(--accent);
+        color: #fff;
+    }
+    .survey-option.selected::before {
+        transform: scaleY(1);
+    }
+    .survey-input {
+        width: 100%;
+        padding: 16px 18px;
+        border-radius: 12px;
+        border: 1px solid #2e2e2e;
+        background: #1a1a1a;
+        color: #fff;
+        font-size: 16px;
+        margin-bottom: 30px;
+        box-sizing: border-box;
+        text-align: center;
+        transition: border-color 0.25s ease;
+    }
+    .survey-input:focus {
+        outline: none;
+        border-color: var(--accent);
+    }
+    .survey-next-btn {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+        color: #171717;
+        border: none;
+        border-radius: 30px;
+        padding: 15px 42px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 8px 24px rgba(240,201,135,0.18);
+    }
+    .survey-next-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(240,201,135,0.28);
+    }
+    .survey-next-btn:active {
+        transform: translateY(0);
+    }
+    .survey-next-btn:disabled {
+        background: #2a2a2a;
+        color: #6b6b6b;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+        pointer-events: none;
+    }
+    .survey-consent {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        text-align: left;
+        margin-bottom: 24px;
+        cursor: pointer;
+        font-size: 12.5px;
+        color: #8a8a8a;
+        line-height: 1.4;
+    }
+    .survey-consent input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        margin-top: 1px;
+        border: 1px solid #3d3d3d;
+        border-radius: 5px;
+        background: #1a1a1a;
+        cursor: pointer;
+        position: relative;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+    .survey-consent input[type="checkbox"]:checked {
+        background: var(--accent);
+        border-color: var(--accent);
+    }
+    .survey-consent input[type="checkbox"]:checked::after {
+        content: '';
+        position: absolute;
+        left: 5px;
+        top: 1px;
+        width: 5px;
+        height: 9px;
+        border: solid #171717;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+    }
+    .survey-consent a {
+        color: var(--accent);
+        text-decoration: underline;
+    }
+    .survey-progress {
+        display: flex;
+        justify-content: center;
+        gap: 7px;
+        margin-bottom: 34px;
+        flex-wrap: wrap;
+    }
+    .survey-progress span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #333;
+        transition: all 0.3s ease;
+    }
+    .survey-progress span.active {
+        background: var(--accent);
+        transform: scale(1.35);
+        box-shadow: 0 0 8px rgba(240,201,135,0.5);
+    }
+
+    /* Вступительный экран */
+    .survey-intro {
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .survey-intro.fade-out {
+        opacity: 0;
+        transform: translateY(-20px);
+        pointer-events: none;
+    }
+    .survey-body {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+        transition: opacity 0.6s ease;
+    }
+    .survey-body.visible {
+        opacity: 1;
+        max-height: none;
+        overflow: visible;
+    }
+
+    /* ===== Макет "вопрос слева — картинка справа" (вопросы 1–3) ===== */
+    .survey-question-row {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 28px;
+    }
+    .survey-question-row .survey-question-col {
+        flex: 1;
+        min-width: 0;
+        text-align: left;
+    }
+
+    /* Панель предпросмотра: база (силуэт) + оверлей (полупрозрачная line-art, меняется по ответу) */
+    .preview-panel {
+        width: 260px;
+        height: 260px;
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: radial-gradient(circle at 30% 20%, #232323, #141414 75%);
+        border: 1px solid #2a2a2a;
+        box-shadow: 0 20px 45px rgba(0,0,0,0.4), inset 0 0 40px rgba(0,0,0,0.35);
+    }
+    .preview-panel svg {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    .preview-base {
+        color: var(--panel-line);
+    }
+    .preview-overlay {
+        color: var(--accent);
+        opacity: 0;
+        transform: scale(0.94);
+        transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+    .preview-overlay.active {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+
+    /* Точки-маркеры районов на карте (вопрос 2) */
+    .map-dot {
+        position: absolute;
+        width: 13px;
+        height: 13px;
+        margin-left: -6.5px;
+        margin-top: -6.5px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #fbe4b0 0%, var(--accent) 55%, transparent 100%);
+        opacity: 0;
+        transform: scale(0.3);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        pointer-events: none;
+    }
+    .map-dot.active {
+        opacity: 1;
+        transform: scale(1);
+        animation: dotPulse 1.8s ease-in-out infinite;
+    }
+    .map-dot.wide {
+        width: 26px;
+        height: 26px;
+        margin-left: -13px;
+        margin-top: -13px;
+    }
+    @keyframes dotPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(240,201,135,0.45); }
+        50% { box-shadow: 0 0 0 9px rgba(240,201,135,0); }
+    }
+
+    @media (max-width: 900px) {
+        .survey-main { min-height: calc(100svh - 83px); }
+    }
+
+    @media (max-width: 700px) {
+        .survey-main { padding: 100px 16px 40px; }
+        .survey-card {
+            padding: 28px 18px;
+            border-radius: 22px;
+            margin: -15px 0 15px;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            background: rgba(27, 27, 27, 0.72);
+        }
+        .survey-question-row {
+            flex-direction: column-reverse;
+            align-items: stretch;
+            gap: 16px;
+        }
+        .preview-panel {
+            width: 100%;
+            max-width: 210px;
+            aspect-ratio: 1 / 1;
+            height: auto;
+            margin: 0 auto;
+        }
+        .survey-title { font-size: 24px; }
+        .survey-question { font-size: 20px; margin-bottom: 4px; }
+        .survey-hint { margin-bottom: 14px; }
+        .survey-options { gap: 8px; margin-bottom: 20px; }
+        .survey-option { padding: 12px 16px; }
+    }
+
+    @media (min-width: 1000px) {
+        .survey-main {
+            max-width: 760px;
+            padding-top: 60px;
+            padding-bottom: 60px;
+        }
+        .survey-card { padding: 56px 54px; }
+        .preview-panel { width: 300px; height: 300px; }
+        .survey-title { font-size: 38px; }
+    }
+
+
+</style>
+</head>
+<body class="survey-page">
+    <header class="main-header">
+        <div class="header-left-bg">
+            <div class="logo-box" style="cursor: default;">
+                <img src="img/logg.svg" alt="Логотип" class="logo-svg">
+            </div>
+        </div>
+        <span class="header-brand-text">Гид Планировок</span>
+    </header>
+
+    <main class="survey-main">
+        <div class="survey-card">
+        <div class="survey-intro" id="survey-intro">
+            <div class="survey-badge">Пройди опрос за 1 минуту и получи каталог</div>
+            <h1 class="survey-title">Подберём для вас планировку</h1>
+            <p class="survey-subtitle">Ответьте на несколько коротких вопросов — и мы пришлём подборку планировок, которых часто нет в открытом доступе</p>
+            <button class="survey-next-btn" onclick="startSurvey()">Пройти опрос</button>
+            <div class="intro-stats">
+                <div class="intro-stat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+                    <span>~1 минута</span>
+                </div>
+                <div class="intro-stat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 2v4M16 2v4M4 10h16"/></svg>
+                    <span>7 вопросов</span>
+                </div>
+                <div class="intro-stat">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 6L9 17l-5-5"/></svg>
+                    <span>Без спама</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="survey-body" id="survey-body">
+            <div class="survey-progress">
+                <span id="dot-1" class="active"></span>
+                <span id="dot-2"></span>
+                <span id="dot-3"></span>
+                <span id="dot-4"></span>
+                <span id="dot-5"></span>
+                <span id="dot-6"></span>
+                <span id="dot-7"></span>
+            </div>
+
+            <!-- Вопрос 1: комнаты — множественный выбор -->
+            <div class="survey-step active" id="step-1">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Сколько комнат вас интересует?</div>
+                        <div class="survey-hint">Можно выбрать несколько вариантов</div>
+                        <div class="survey-options" data-multi="rooms">
+                            <div class="survey-option" data-value="Студия" data-overlay="studio">Студия</div>
+                            <div class="survey-option" data-value="1-комнатная/евродвушка" data-overlay="one">1-комнатная/Евро-двушка</div>
+                            <div class="survey-option" data-value="2-комнатная" data-overlay="two">2-комнатная</div>
+                            <div class="survey-option" data-value="3-комнатная и более" data-overlay="three">3-комнатная и более</div>
+                            <div class="survey-option" data-value="Ещё не определился(-лась)" data-overlay="undecided">Ещё не определился(-лась)</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-rooms">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <rect x="34" y="34" width="132" height="132" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="studio" viewBox="0 0 200 200">
+                            <!-- Кухонный уголок (столешница + 2 конфорки) -->
+                            <path d="M46 46 H76 M46 46 V72" fill="none" stroke="currentColor" stroke-width="1.6"/>
+                            <circle cx="56" cy="56" r="2.6" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="68" cy="56" r="2.6" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <!-- Кровать -->
+                            <rect x="122" y="120" width="30" height="38" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="125" y="123" width="9" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="140" y="123" width="9" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <line x1="122" y1="137" x2="152" y2="137" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="one" viewBox="0 0 200 200">
+                            <line x1="100" y1="34" x2="100" y2="166" stroke="currentColor" stroke-width="1.8"/>
+                            <!-- Кухня + диван слева -->
+                            <path d="M44 46 H70 M44 46 V68" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="53" cy="55" r="2.4" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="63" cy="55" r="2.4" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="42" y="128" width="34" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="42" y="122" width="8" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/>
+                            <rect x="68" y="122" width="8" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/>
+                            <!-- Спальня справа -->
+                            <rect x="122" y="46" width="30" height="38" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <rect x="125" y="49" width="9" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="140" y="49" width="9" height="8" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <line x1="122" y1="63" x2="152" y2="63" stroke="currentColor" stroke-width="1" opacity="0.7"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="two" viewBox="0 0 200 200">
+                            <line x1="100" y1="34" x2="100" y2="166" stroke="currentColor" stroke-width="1.8"/>
+                            <line x1="100" y1="100" x2="166" y2="100" stroke="currentColor" stroke-width="1.8"/>
+                            <!-- Кухня + диван слева -->
+                            <path d="M44 46 H70 M44 46 V68" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                            <circle cx="53" cy="55" r="2.4" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="63" cy="55" r="2.4" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="42" y="132" width="34" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="42" y="126" width="8" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/>
+                            <rect x="68" y="126" width="8" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/>
+                            <!-- Спальня 1 (верх-право) -->
+                            <rect x="120" y="44" width="28" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="123" y="47" width="8" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="137" y="47" width="8" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <!-- Спальня 2 (низ-право) -->
+                            <rect x="120" y="118" width="28" height="34" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="123" y="121" width="8" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="137" y="121" width="8" height="7" rx="2" fill="none" stroke="currentColor" stroke-width="1"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="three" viewBox="0 0 200 200">
+                            <line x1="100" y1="34" x2="100" y2="166" stroke="currentColor" stroke-width="1.8"/>
+                            <line x1="34" y1="100" x2="166" y2="100" stroke="currentColor" stroke-width="1.8"/>
+                            <!-- Кухня + диван (верх-лево) -->
+                            <path d="M42 44 H64 M42 44 V62" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <circle cx="49" cy="51" r="2.2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <circle cx="58" cy="51" r="2.2" fill="none" stroke="currentColor" stroke-width="1"/>
+                            <rect x="42" y="74" width="30" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                            <!-- Спальня 1 (верх-право) -->
+                            <rect x="122" y="42" width="26" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="125" y="45" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="0.9"/>
+                            <!-- Спальня 2 (низ-лево) -->
+                            <rect x="44" y="120" width="26" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="47" y="123" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="0.9"/>
+                            <!-- Спальня 3 (низ-право) -->
+                            <rect x="122" y="120" width="26" height="32" rx="3" fill="none" stroke="currentColor" stroke-width="1.3"/>
+                            <rect x="125" y="123" width="7" height="6" rx="1.5" fill="none" stroke="currentColor" stroke-width="0.9"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="undecided" viewBox="0 0 200 200">
+                            <rect x="34" y="34" width="132" height="132" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="5 6" opacity="0.6"/>
+                            <text x="100" y="112" font-size="46" text-anchor="middle" fill="currentColor" opacity="0.85" font-family="Inter, sans-serif">?</text>
+                        </svg>
+                    </div>
+                </div>
+                <button class="survey-next-btn" onclick="nextFromMulti('rooms', 'step-2', 2)" disabled>Далее</button>
+            </div>
+
+            <!-- Вопрос 2: район — множественный выбор -->
+            <div class="survey-step" id="step-2">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Какой район Ростова рассматриваете?</div>
+                        <div class="survey-hint">Можно выбрать несколько вариантов</div>
+                        <div class="survey-options" data-multi="district">
+                            <div class="survey-option" data-value="Центр" data-overlay="center">Центр</div>
+                            <div class="survey-option" data-value="Северный жилой массив" data-overlay="north">Северный жилой массив</div>
+                            <div class="survey-option" data-value="Западный жилой массив" data-overlay="west">Западный жилой массив</div>
+                            <div class="survey-option" data-value="Пролетарский" data-overlay="proletarsky">Пролетарский</div>
+                            <div class="survey-option" data-value="Октябрьский" data-overlay="oktyabrsky">Октябрьский</div>
+                            <div class="survey-option" data-value="Не имеет значения" data-overlay="any">Не имеет значения</div>
+                            <div class="survey-option" data-value="Другое" data-overlay="other">Другое</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-district">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <path d="M15 150 C55 120, 60 95, 95 92 C135 88, 140 60, 182 38" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="72" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 5" opacity="0.45"/>
+                        </svg>
+                        <div class="map-dot" data-key="center" style="top:50%; left:50%;"></div>
+                        <div class="map-dot" data-key="north" style="top:16%; left:56%;"></div>
+                        <div class="map-dot" data-key="west" style="top:58%; left:20%;"></div>
+                        <div class="map-dot" data-key="proletarsky" style="top:80%; left:68%;"></div>
+                        <div class="map-dot" data-key="oktyabrsky" style="top:32%; left:82%;"></div>
+                        <div class="map-dot wide" data-key="any" style="top:50%; left:50%;"></div>
+                        <div class="map-dot" data-key="other" style="top:90%; left:12%;"></div>
+                    </div>
+                </div>
+                <button class="survey-next-btn" onclick="nextFromMulti('district', 'step-3', 3)" disabled>Далее</button>
+            </div>
+
+            <!-- Вопрос 3: готовность ждать — один вариант -->
+            <div class="survey-step" id="step-3">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Готовы ли вы подождать завершения строительства?</div>
+                        <div class="survey-hint">&nbsp;</div>
+                        <div class="survey-options" data-single="readiness" data-panel="panel-readiness" data-next="step-4" data-dot="4">
+                            <div class="survey-option" data-value="Да, готовы подождать" data-overlay="wait">Да, готовы подождать</div>
+                            <div class="survey-option" data-value="Нет, нужна готовая квартира" data-overlay="ready">Нет, нужна готовая квартира</div>
+                            <div class="survey-option" data-value="Не принципиально" data-overlay="any">Не принципиально</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-readiness">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <rect x="64" y="46" width="72" height="120" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="64" y1="74" x2="136" y2="74" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                            <line x1="64" y1="102" x2="136" y2="102" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                            <line x1="64" y1="130" x2="136" y2="130" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                            <line x1="100" y1="46" x2="100" y2="166" stroke="currentColor" stroke-width="1" opacity="0.5"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="wait" viewBox="0 0 200 200">
+                            <line x1="150" y1="30" x2="150" y2="150" stroke="currentColor" stroke-width="1.8"/>
+                            <line x1="150" y1="30" x2="182" y2="42" stroke="currentColor" stroke-width="1.8"/>
+                            <line x1="182" y1="42" x2="182" y2="66" stroke="currentColor" stroke-width="1.4" opacity="0.7"/>
+                            <rect x="60" y="42" width="76" height="124" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="4 5" opacity="0.7"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="ready" viewBox="0 0 200 200">
+                            <circle cx="146" cy="56" r="20" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                            <path d="M138 56 l6 7 12 -14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="any" viewBox="0 0 200 200">
+                            <circle cx="146" cy="56" r="18" fill="none" stroke="currentColor" stroke-width="1.6" opacity="0.85"/>
+                            <line x1="146" y1="56" x2="146" y2="44" stroke="currentColor" stroke-width="1.6"/>
+                            <line x1="146" y1="56" x2="154" y2="60" stroke="currentColor" stroke-width="1.6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 4: способ покупки — один вариант -->
+            <div class="survey-step" id="step-4">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Какой способ покупки вам подходит?</div>
+                        <div class="survey-hint">&nbsp;</div>
+                        <div class="survey-options" data-single="payment" data-panel="panel-payment" data-next="step-5" data-dot="5">
+                            <div class="survey-option" data-value="Ипотека" data-overlay="mortgage">Ипотека</div>
+                            <div class="survey-option" data-value="Наличными" data-overlay="cash">Наличными</div>
+                            <div class="survey-option" data-value="Рассрочка" data-overlay="installment">Рассрочка</div>
+                            <div class="survey-option" data-value="После продажи своего жилья" data-overlay="trade">После продажи своего жилья</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-payment">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <path d="M40 88 L100 48 L160 88" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <rect x="48" y="88" width="104" height="66" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="64" y1="100" x2="64" y2="142" stroke="currentColor" stroke-width="1.6" opacity="0.7"/>
+                            <line x1="86" y1="100" x2="86" y2="142" stroke="currentColor" stroke-width="1.6" opacity="0.7"/>
+                            <line x1="114" y1="100" x2="114" y2="142" stroke="currentColor" stroke-width="1.6" opacity="0.7"/>
+                            <line x1="136" y1="100" x2="136" y2="142" stroke="currentColor" stroke-width="1.6" opacity="0.7"/>
+                            <line x1="40" y1="154" x2="160" y2="154" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="100" cy="120" r="15" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.85"/>
+                            <text x="100" y="126" font-size="17" text-anchor="middle" fill="currentColor" opacity="0.85" font-family="Inter, sans-serif">%</text>
+                        </svg>
+                        <svg class="preview-overlay" data-key="mortgage" viewBox="0 0 200 200">
+                            <circle cx="100" cy="120" r="15" fill="currentColor" opacity="0.18"/>
+                            <circle cx="100" cy="120" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M92 120 l6 6 12 -14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="cash" viewBox="0 0 200 200">
+                            <rect x="58" y="160" width="84" height="32" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+                            <circle cx="100" cy="176" r="8" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <line x1="66" y1="168" x2="66" y2="184" stroke="currentColor" stroke-width="1.2" opacity="0.7"/>
+                            <line x1="134" y1="168" x2="134" y2="184" stroke="currentColor" stroke-width="1.2" opacity="0.7"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="installment" viewBox="0 0 200 200">
+                            <rect x="58" y="18" width="20" height="16" rx="2" fill="currentColor" opacity="0.9"/>
+                            <rect x="90" y="18" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <rect x="122" y="18" width="20" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.4"/>
+                            <line x1="78" y1="26" x2="90" y2="26" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 3"/>
+                            <line x1="110" y1="26" x2="122" y2="26" stroke="currentColor" stroke-width="1.2" stroke-dasharray="2 3"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="trade" viewBox="0 0 200 200">
+                            <path d="M52 28 Q100 6 148 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                            <path d="M140 22 L149 28 L139 33" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 5: сроки покупки — один вариант -->
+            <div class="survey-step" id="step-5">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Когда планируете покупку?</div>
+                        <div class="survey-hint">&nbsp;</div>
+                        <div class="survey-options" data-single="timing" data-panel="panel-timing" data-next="step-6" data-dot="6">
+                            <div class="survey-option" data-value="В течение месяца" data-overlay="soon">В течение месяца</div>
+                            <div class="survey-option" data-value="От 3 до 5 месяцев" data-overlay="mid">От 3 до 5 месяцев</div>
+                            <div class="survey-option" data-value="Просто рассматриваю варианты" data-overlay="browsing">Просто рассматриваю варианты</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-timing">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <rect x="48" y="54" width="104" height="96" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="48" y1="76" x2="152" y2="76" stroke="currentColor" stroke-width="2"/>
+                            <line x1="70" y1="44" x2="70" y2="62" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <line x1="130" y1="44" x2="130" y2="62" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="66" y="92" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+                            <rect x="92" y="92" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+                            <rect x="118" y="92" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+                            <rect x="66" y="116" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+                            <rect x="92" y="116" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.3" opacity="0.6"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="soon" viewBox="0 0 200 200">
+                            <circle cx="100" cy="99" r="15" fill="currentColor" opacity="0.22"/>
+                            <rect x="92" y="92" width="16" height="14" rx="2" fill="currentColor"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="mid" viewBox="0 0 200 200">
+                            <rect x="66" y="92" width="16" height="14" rx="2" fill="currentColor" opacity="0.5"/>
+                            <rect x="92" y="92" width="16" height="14" rx="2" fill="currentColor" opacity="0.75"/>
+                            <rect x="118" y="92" width="16" height="14" rx="2" fill="currentColor"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="browsing" viewBox="0 0 200 200">
+                            <circle cx="138" cy="60" r="14" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="148" y1="70" x2="158" y2="80" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 6: канал связи — один вариант -->
+            <div class="survey-step" id="step-6">
+                <div class="survey-question-row">
+                    <div class="survey-question-col">
+                        <div class="survey-question">Куда отправить подборку планировок, которых часто нет в открытом доступе?</div>
+                        <div class="survey-hint">&nbsp;</div>
+                        <div class="survey-options" data-single="channel" data-panel="panel-channel" data-next="step-7" data-dot="7">
+                            <div class="survey-option" data-value="Telegram" data-overlay="telegram">Telegram</div>
+                            <div class="survey-option" data-value="WhatsApp" data-overlay="whatsapp">WhatsApp</div>
+                            <div class="survey-option" data-value="Max" data-overlay="max">Max</div>
+                        </div>
+                    </div>
+                    <div class="preview-panel" id="panel-channel">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <path d="M46 66 h108 a10 10 0 0 1 10 10 v46 a10 10 0 0 1 -10 10 h-70 l-24 22 v-22 h-14 a10 10 0 0 1 -10 -10 v-46 a10 10 0 0 1 10 -10 z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                            <line x1="64" y1="92" x2="146" y2="92" stroke="currentColor" stroke-width="1.6" opacity="0.6"/>
+                            <line x1="64" y1="110" x2="120" y2="110" stroke="currentColor" stroke-width="1.6" opacity="0.6"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="telegram" viewBox="0 0 200 200">
+                            <path d="M72 96 L136 76 L112 130 L96 108 L82 118 Z" fill="currentColor" opacity="0.9"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="whatsapp" viewBox="0 0 200 200">
+                            <path d="M88 84 q-6 6 -1 13 q7 11 19 19 q7 5 13 -1 l4 -4 q3 -3 -1 -7 l-7 -7 q-3 -3 -6 0 l-2 2 q-7 -5 -12 -12 l2 -2 q3 -3 0 -6 l-7 -7 q-4 -4 -7 -1 z" fill="currentColor" opacity="0.9"/>
+                        </svg>
+                        <svg class="preview-overlay" data-key="max" viewBox="0 0 200 200">
+                            <circle cx="88" cy="98" r="4.5" fill="currentColor"/>
+                            <circle cx="104" cy="98" r="4.5" fill="currentColor"/>
+                            <circle cx="120" cy="98" r="4.5" fill="currentColor"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вопрос 7: телефон -->
+            <div class="survey-step" id="step-7">
+                <div class="survey-question-row">
+                    <div class="survey-question-col" style="text-align: center;">
+                        <div class="survey-question">Укажите номер телефона для связи</div>
+                        <div class="survey-hint">&nbsp;</div>
+                        <input type="tel" id="phone-input" class="survey-input" placeholder="+7 (999) 999-99-99">
+                        <label class="survey-consent">
+                            <input type="checkbox" id="consent-checkbox">
+                            <span>Отправляя данные, вы даёте согласие на <a href="https://docs.github.com/ru/site-policy" target="_blank">обработку персональных данных</a></span>
+                        </label>
+                        <button class="survey-next-btn" id="submit-btn" onclick="submitSurvey()" disabled>Получить каталог</button>
+                    </div>
+                    <div class="preview-panel">
+                        <svg class="preview-base" viewBox="0 0 200 200">
+                            <rect x="72" y="36" width="56" height="128" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="72" y1="52" x2="128" y2="52" stroke="currentColor" stroke-width="1.4" opacity="0.6"/>
+                            <line x1="72" y1="146" x2="128" y2="146" stroke="currentColor" stroke-width="1.4" opacity="0.6"/>
+                            <circle cx="100" cy="155" r="4" fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.7"/>
+                            <path d="M84 92 a16 16 0 0 1 32 0 c0 10 -16 12 -16 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.85"/>
+                            <circle cx="100" cy="126" r="2.4" fill="currentColor" opacity="0.85"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="survey-step" id="thanks">
+                <div class="survey-question">Спасибо! 🎉</div>
+                <p class="survey-subtitle">Переходим к каталогу планировок...</p>
+            </div>
+        </div>
+        </div>
+    </main>
+
+    <script>
+      const answers = { rooms: [], district: [], readiness: '', payment: '', timing: '', channel: '', phone: '' };
+
+        let autoPreviewInterval = null;
+        const MOBILE_QUERY = '(max-width: 700px)';
+
+        function startSurvey() {
+            document.getElementById('survey-intro').classList.add('fade-out');
+            setTimeout(() => {
+                document.getElementById('survey-intro').style.display = 'none';
+                document.getElementById('survey-body').classList.add('visible');
+                
+                // Запускаем авто-просмотр для первого шага
+                startAutoPreviewRotation('step-1');
+            }, 500);
+        }
+
+        function goToStep(step, dotNum) {
+            stopAutoPreviewRotation();
+
+            const current = document.querySelector('.survey-step.active');
+            const next = document.getElementById(step);
+            if (current) current.classList.remove('active');
+            
+            next.classList.add('pre-active');
+            void next.offsetHeight; 
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    next.classList.remove('pre-active');
+                    next.classList.add('active');
+                    
+                    // Запускаем умную карусель для нового шага
+                    startAutoPreviewRotation(step);
+                });
+            });
+            
+            if (dotNum) {
+                document.querySelectorAll('.survey-progress span').forEach(el => el.classList.remove('active'));
+                for (let i = 1; i <= dotNum; i++) {
+                    const dot = document.getElementById('dot-' + i);
+                    if (dot) dot.classList.add('active');
+                }
+            }
+        }
+
+        // Универсальная функция очистки визуала в панели
+        function clearPanelVisuals(panelId) {
+            const panel = document.getElementById(panelId);
+            if (panel) {
+                panel.querySelectorAll('.preview-overlay, .map-dot').forEach(el => el.classList.remove('active'));
+            }
+        }
+
+        // Умная авто-анимация для ЛЮБОГО шага
+        function startAutoPreviewRotation(stepId) {
+            stopAutoPreviewRotation();
+            if (!window.matchMedia(MOBILE_QUERY).matches) return;
+
+            const stepEl = document.getElementById(stepId);
+            if (!stepEl) return;
+
+            // Определяем, одиночный это выбор или множественный, и ищем ID панели
+            let panelId = null;
+            let isMulti = false;
+            let answerKey = null;
+
+            const multiGroup = stepEl.querySelector('[data-multi]');
+            const singleGroup = stepEl.querySelector('[data-single]');
+
+            if (multiGroup) {
+                isMulti = true;
+                answerKey = multiGroup.dataset.multi;
+                panelId = answerKey === 'rooms' ? 'panel-rooms' : 'panel-district';
+            } else if (singleGroup) {
+                isMulti = false;
+                answerKey = singleGroup.dataset.single;
+                panelId = singleGroup.dataset.panel;
+            }
+
+            if (!panelId) return;
+
+            // Если пользователь уже ответил на этот вопрос — не крутим карусель
+            if (isMulti && answers[answerKey].length > 0) return;
+            if (!isMulti && answers[answerKey] !== '') return;
+
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+
+            // Собираем все варианты ответов на текущем шаге, у которых есть картинки
+            const options = Array.from(stepEl.querySelectorAll('.survey-option[data-overlay]'));
+            if (options.length === 0) return;
+
+            let currentIndex = 0;
+
+            // Показываем первый вариант сразу, не дожидаясь целого интервала
+            const showCurrent = () => {
+                clearPanelVisuals(panelId);
+                const key = options[currentIndex].dataset.overlay;
+                const target = panel.querySelector(`.preview-overlay[data-key="${key}"], .map-dot[data-key="${key}"]`);
+                if (target) target.classList.add('active');
+                currentIndex = (currentIndex + 1) % options.length;
+            };
+
+            showCurrent();
+            autoPreviewInterval = setInterval(showCurrent, 1400); // Универсальная скорость 1.4 секунды
+        }
+
+        function stopAutoPreviewRotation() {
+            if (autoPreviewInterval) {
+                clearInterval(autoPreviewInterval);
+                autoPreviewInterval = null;
+            }
+        }
+
+        function setPreview(panelId, key) {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            panel.querySelectorAll('.preview-overlay').forEach(el => {
+                el.classList.toggle('active', el.dataset.key === key);
+            });
+        }
+
+         // --- МНОЖЕСТВЕННЫЙ ВЫБОР (Вопросы 1 и 2) ---
+        // Комнаты: один силуэт — показываем только последний выбранный.
+        // Район: точки на карте — каждая горит независимо от остальных.
+        document.querySelectorAll('[data-multi]').forEach(group => {
+            const key = group.dataset.multi;
+            const panelId = key === 'rooms' ? 'panel-rooms' : 'panel-district';
+            const nextBtn = group.closest('.survey-step').querySelector('.survey-next-btn');
+
+            group.querySelectorAll('.survey-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    stopAutoPreviewRotation();
+
+                    opt.classList.toggle('selected');
+                    const value = opt.dataset.value;
+                    const isSelected = opt.classList.contains('selected');
+
+                    if (isSelected) {
+                        if (!answers[key].includes(value)) answers[key].push(value);
+                    } else {
+                        answers[key] = answers[key].filter(v => v !== value);
+                    }
+
+                    if (nextBtn) nextBtn.disabled = answers[key].length === 0;
+
+                    if (key === 'rooms') {
+                        clearPanelVisuals(panelId);
+                        if (isSelected && opt.dataset.overlay) {
+                            setPreview(panelId, opt.dataset.overlay);
+                        } else if (answers.rooms.length > 0) {
+                            const lastValue = answers.rooms[answers.rooms.length - 1];
+                            const lastOpt = group.querySelector(`.survey-option[data-value="${lastValue}"]`);
+                            if (lastOpt && lastOpt.dataset.overlay) setPreview(panelId, lastOpt.dataset.overlay);
+                        }
+                    } else if (key === 'district') {
+                        // Полностью пересобираем подсветку по реальным ответам —
+                        // это гарантированно гасит всё, что могло остаться от автопрокрутки
+                        clearPanelVisuals(panelId);
+                        answers.district.forEach(val => {
+                            const selOpt = group.querySelector(`.survey-option[data-value="${val}"]`);
+                            if (selOpt && selOpt.dataset.overlay) {
+                                const d = document.querySelector(`#panel-district .map-dot[data-key="${selOpt.dataset.overlay}"]`);
+                                if (d) d.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        // Возвращает подсветку панели к тому, что реально выбрано (или гасит, если ничего не выбрано)
+        function resetPreviewOnLeave(panelId, group) {
+            const selectedOpt = group.querySelector('.survey-option.selected');
+            if (selectedOpt && selectedOpt.dataset.overlay) {
+                setPreview(panelId, selectedOpt.dataset.overlay);
+            } else {
+                clearPanelVisuals(panelId);
+            }
+        }
+
+        // Наведение мыши на ПК — вопрос 1 (комнаты)
+        document.querySelectorAll('#step-1 .survey-option').forEach(opt => {
+            opt.addEventListener('mouseenter', () => {
+                if (!window.matchMedia(MOBILE_QUERY).matches && opt.dataset.overlay) {
+                    setPreview('panel-rooms', opt.dataset.overlay);
+                }
+            });
+            opt.addEventListener('mouseleave', () => {
+                if (!window.matchMedia(MOBILE_QUERY).matches) {
+                    resetPreviewOnLeave('panel-rooms', document.querySelector('[data-multi="rooms"]'));
+                }
+            });
+        });
+
+        // Наведение мыши на ПК — вопрос 2 (район)
+        document.querySelectorAll('#step-2 .survey-option').forEach(opt => {
+            const dot = document.querySelector('#panel-district .map-dot[data-key="' + opt.dataset.overlay + '"]');
+            if (!dot) return;
+            opt.addEventListener('mouseenter', () => {
+                if (!window.matchMedia(MOBILE_QUERY).matches) dot.classList.add('active');
+            });
+            opt.addEventListener('mouseleave', () => {
+                if (!window.matchMedia(MOBILE_QUERY).matches && !opt.classList.contains('selected')) {
+                    dot.classList.remove('active');
+                }
+            });
+        });
+
+        function nextFromMulti(key, nextStep, dotNum) {
+            if (answers[key].length === 0) {
+                alert('Пожалуйста, выберите хотя бы один вариант');
+                return;
+            }
+            goToStep(nextStep, dotNum);
+        }
+
+        // --- ОДИНОЧНЫЙ ВЫБОР (Вопросы 3-6) ---
+        document.querySelectorAll('[data-single]').forEach(group => {
+            const key = group.dataset.single;
+            const panelId = group.dataset.panel;
+            const nextStep = group.dataset.next;
+            const dotNum = parseInt(group.dataset.dot, 10);
+
+            group.querySelectorAll('.survey-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    // ИСПРАВЛЕНИЕ БАГА: Очищаем карусель перед кликом
+                    if (autoPreviewInterval) {
+                        stopAutoPreviewRotation();
+                    }
+
+                    group.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
+                    opt.classList.add('selected');
+                    answers[key] = opt.dataset.value;
+                    
+                    if (panelId && opt.dataset.overlay) {
+                        clearPanelVisuals(panelId); // Сбрасываем старую картинку
+                        setPreview(panelId, opt.dataset.overlay); // Моментально ставим новую
+                    }
+
+                    // Ускоренный переход на мобильных (было 450, стало 250)
+                    if (window.matchMedia(MOBILE_QUERY).matches) {
+                        setTimeout(() => goToStep(nextStep, dotNum), 250);
+                    } else {
+                        goToStep(nextStep, dotNum);
+                    }
+                });
+                
+                if (panelId) {
+                    opt.addEventListener('mouseenter', () => {
+                        if (!window.matchMedia(MOBILE_QUERY).matches && opt.dataset.overlay) {
+                            setPreview(panelId, opt.dataset.overlay);
+                        }
+                    });
+                    opt.addEventListener('mouseleave', () => {
+                        if (!window.matchMedia(MOBILE_QUERY).matches) {
+                            resetPreviewOnLeave(panelId, group);
+                        }
+                    });
+                }
+            });
+        });
+
+        // --- ОТПРАВКА ФОРМЫ И ТЕЛЕФОН ---
+        const phoneInputEl = document.getElementById('phone-input');
+        const consentEl = document.getElementById('consent-checkbox');
+        const submitBtnEl = document.getElementById('submit-btn');
+        
+        function refreshSubmitState() {
+            submitBtnEl.disabled = !(phoneInputEl.value.trim() && consentEl.checked);
+        }
+
+        phoneInputEl.addEventListener('input', () => {
+            let digits = phoneInputEl.value.replace(/\D/g, '');
+            if (digits.startsWith('8')) digits = '7' + digits.slice(1);
+            if (!digits.startsWith('7')) digits = '7' + digits;
+            digits = digits.slice(0, 11);
+
+            let formatted = '+7';
+            const rest = digits.slice(1);
+            if (rest.length > 0) formatted += ' (' + rest.slice(0, 3);
+            if (rest.length >= 3) formatted += ')';
+            if (rest.length > 3) formatted += ' ' + rest.slice(3, 6);
+            if (rest.length > 6) formatted += '-' + rest.slice(6, 8);
+            if (rest.length > 8) formatted += '-' + rest.slice(8, 10);
+
+            phoneInputEl.value = formatted;
+            refreshSubmitState();
+        });
+        
+        consentEl.addEventListener('change', refreshSubmitState);
+
+        function submitSurvey() {
+            answers.phone = document.getElementById('phone-input').value.trim();
+            if (!answers.phone || !document.getElementById('consent-checkbox').checked) return;
+
+            const formData = new FormData();
+            answers.rooms.forEach(v => formData.append('entry.475097914', v));
+            answers.district.forEach(v => formData.append('entry.1856710404', v));
+            formData.append('entry.1502898923', answers.readiness);
+            formData.append('entry.875552615', answers.payment);
+            formData.append('entry.1998010337', answers.timing);
+            formData.append('entry.940879775', answers.channel);
+            formData.append('entry.1488837864', answers.phone);
+            formData.append('entry.58226306', 'Да'); // Согласие на обработку персональных данных
+
+            fetch('https://docs.google.com/forms/d/e/1FAIpQLSefGvZF4MrSlNbn4UcPIt0OKOHvXszPB1OsLF5JTY1MvIw7nw/formResponse', {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
+            }).catch(() => {});
+
+            sessionStorage.setItem('surveyDone', 'true');
+            goToStep('thanks');
+
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
