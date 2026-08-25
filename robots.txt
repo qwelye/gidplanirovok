@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://anzhela-sk.github.io/gid-planirovok/sitemap.xml
+Sitemap: https://qwelye.github.io/gidplanirovok/sitemap.xml
