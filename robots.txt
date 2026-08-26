@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://qwelye.github.io/gidplanirovok/sitemap.xml
+Sitemap: https://gidplanirovok.ru/sitemap.xml
