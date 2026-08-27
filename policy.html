@@ -26,12 +26,6 @@
             </a>
         </div>
         <span class="header-brand-text">Гид Планировок</span>
-        <nav class="header-right-bg">
-            <a href="index.html" class="nav-link">Главная</a>
-            <a href="index.html#about" class="nav-link">О проекте</a>
-            <a href="exclusive.html" class="nav-link spec-link">Эксклюзив</a>
-            <a href="index.html#contacts" class="nav-link">Контактная информация</a>
-        </nav>
     </header>
 
     <main class="policy-container">
@@ -70,13 +64,20 @@
 
     <a href="index.html" class="back-button">На главную</a>
 
-    <footer class="main-footer minimal-footer">
-        <div class="footer-bottom">
-            <p>&copy; 2026 Гид Планировок. Все права защищены. Копирование и использование материалов сайта без согласия запрещено.</p>
-            <p><a href="policy.html" class="privacy-link">Правила конфиденциальности и условия использования</a></p>
-        </div>
-    </footer>
-
     <script src="script.js"></script>
+    <script>
+        // Если пользователь попал на страницу правил из опросника (survey.html),
+        // то ссылки "на главную" (лого, пункт меню и кнопка "Назад")
+        // ведут обратно в опросник, а не на главную страницу сайта —
+        // чтобы человек не терял прогресс прохождения опроса.
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('from') === 'survey') {
+                document.querySelectorAll('a[href="index.html"]').forEach(link => {
+                    link.setAttribute('href', 'survey.html');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

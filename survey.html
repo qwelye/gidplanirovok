@@ -785,7 +785,7 @@
                         <input type="tel" id="phone-input" class="survey-input" placeholder="+7 (999) 999-99-99">
                         <label class="survey-consent">
                             <input type="checkbox" id="consent-checkbox">
-                            <span>Отправляя данные, вы даёте согласие на <a href="policy.html" target="_blank">обработку персональных данных</a></span>
+                            <span>Отправляя данные, вы даёте согласие на <a href="policy.html?from=survey" target="_blank">обработку персональных данных</a></span>
                         </label>
                         <button class="survey-next-btn" id="submit-btn" onclick="submitSurvey()" disabled>Получить каталог</button>
                     </div>
@@ -815,6 +815,34 @@
 
         let autoPreviewInterval = null;
         const MOBILE_QUERY = '(max-width: 700px)';
+
+        // Возврат к тому шагу опроса, на котором остановился человек
+        // (например, если он уходил почитать правила конфиденциальности)
+        (function resumeSurveyProgress() {
+            const savedStep = sessionStorage.getItem('surveyStep');
+            const savedDone = sessionStorage.getItem('surveyDone');
+            if (!savedStep || savedStep === 'step-1' || savedStep === 'thanks' || savedDone === 'true') return;
+
+            const savedAnswers = sessionStorage.getItem('surveyAnswers');
+            if (savedAnswers) {
+                try { Object.assign(answers, JSON.parse(savedAnswers)); } catch (e) {}
+            }
+
+            document.getElementById('survey-intro').style.display = 'none';
+            document.getElementById('survey-body').classList.add('visible');
+            document.getElementById('step-1').classList.remove('active');
+            document.getElementById(savedStep).classList.add('active');
+
+            const savedDot = parseInt(sessionStorage.getItem('surveyDot'), 10);
+            if (savedDot) {
+                document.querySelectorAll('.survey-progress span').forEach(el => el.classList.remove('active'));
+                for (let i = 1; i <= savedDot; i++) {
+                    const dot = document.getElementById('dot-' + i);
+                    if (dot) dot.classList.add('active');
+                }
+            }
+            startAutoPreviewRotation(savedStep);
+        })();
 
         function startSurvey() {
             document.getElementById('survey-intro').classList.add('fade-out');
@@ -852,6 +880,14 @@
                     const dot = document.getElementById('dot-' + i);
                     if (dot) dot.classList.add('active');
                 }
+            }
+
+            // Запоминаем прогресс, чтобы вернуться на этот же шаг,
+            // если человек уходил на страницу правил конфиденциальности
+            if (step !== 'thanks') {
+                sessionStorage.setItem('surveyStep', step);
+                sessionStorage.setItem('surveyAnswers', JSON.stringify(answers));
+                if (dotNum) sessionStorage.setItem('surveyDot', dotNum);
             }
         }
 
@@ -1123,6 +1159,9 @@
             }).catch(() => {});
 
             sessionStorage.setItem('surveyDone', 'true');
+            sessionStorage.removeItem('surveyStep');
+            sessionStorage.removeItem('surveyAnswers');
+            sessionStorage.removeItem('surveyDot');
             goToStep('thanks');
 
             setTimeout(() => {
