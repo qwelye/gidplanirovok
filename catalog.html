@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Каталог планировок квартир — Гид Планировок</title>
-    <meta name="description" content="Каталог планировок квартир в Ростове-на-Дону: студии, 1, 2, 3 и 4-комнатные варианты с ценами, площадью и фото.">
+    <title id="meta-title">Каталог планировок квартир — Гид Планировок</title>
+    <meta name="description" id="meta-description" content="Каталог планировок квартир в Ростове-на-Дону: студии, 1, 2, 3 и 4-комнатные варианты с ценами, площадью и фото.">
     <meta name="keywords" content="каталог планировок, планировки квартир Ростов-на-Дону, купить квартиру Ростов, студия, однокомнатная квартира, двухкомнатная квартира, новостройки">
     <meta name="robots" content="index, follow">
 
-    <meta property="og:title" content="Каталог планировок — Гид Планировок">
-    <meta property="og:description" content="Изучите планировки квартир в Ростове-на-Дону: от студий до просторных многокомнатных вариантов.">
+    <meta property="og:title" id="meta-og-title" content="Каталог планировок — Гид Планировок">
+    <meta property="og:description" id="meta-og-description" content="Изучите планировки квартир в Ростове-на-Дону: от студий до просторных многокомнатных вариантов.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://gidplanirovok.ru/catalog.html">
+    <meta property="og:url" id="meta-og-url" content="https://gidplanirovok.ru/catalog.html">
     <meta property="og:image" content="https://gidplanirovok.ru/img/og-preview.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -19,11 +19,15 @@
     <meta property="og:site_name" content="Гид Планировок">
 
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Каталог планировок — Гид Планировок">
-    <meta name="twitter:description" content="Изучите планировки квартир в Ростове-на-Дону: от студий до просторных многокомнатных вариантов.">
+    <meta name="twitter:title" id="meta-twitter-title" content="Каталог планировок — Гид Планировок">
+    <meta name="twitter:description" id="meta-twitter-description" content="Изучите планировки квартир в Ростове-на-Дону: от студий до просторных многокомнатных вариантов.">
     <meta name="twitter:image" content="https://gidplanirovok.ru/img/og-preview.jpg">
 
-    <link rel="canonical" href="https://gidplanirovok.ru/catalog.html">
+    <link rel="canonical" id="meta-canonical" href="https://gidplanirovok.ru/catalog.html">
+
+    <link rel="icon" type="image/svg+xml" href="img/logg.svg">
+    <link rel="alternate icon" href="img/logg.svg">
+    <link rel="apple-touch-icon" href="img/logg.svg">
 
     <link rel="stylesheet" href="style.css">
 </head>
@@ -222,6 +226,48 @@
         const currentType = params.get('type');
         const grid = document.getElementById('catalog-grid');
         const titleElement = document.getElementById('catalog-title');
+
+        // SEO-метаданные под каждый тип планировки — чтобы 5 адресов
+        // catalog.html?type=... были для поисковика по-настоящему разными
+        // страницами (title/description/canonical свои у каждой), а не
+        // дублями друг друга.
+        const metaByType = {
+            studio: {
+                title: 'Планировки квартир-студий — Гид Планировок',
+                description: 'Планировки квартир-студий в Ростове-на-Дону: цены, площадь и фото. Подберите подходящий вариант студии.'
+            },
+            '1room': {
+                title: '1-комнатные квартиры: планировки — Гид Планировок',
+                description: 'Планировки 1-комнатных квартир в Ростове-на-Дону: цены, площадь и фото вариантов.'
+            },
+            '2room': {
+                title: '2-комнатные квартиры: планировки — Гид Планировок',
+                description: 'Планировки 2-комнатных квартир в Ростове-на-Дону: цены, площадь и фото вариантов.'
+            },
+            '3room': {
+                title: '3-комнатные квартиры: планировки — Гид Планировок',
+                description: 'Планировки 3-комнатных квартир в Ростове-на-Дону: цены, площадь и фото вариантов.'
+            },
+            '4room': {
+                title: '4-комнатные и более: планировки — Гид Планировок',
+                description: 'Планировки 4-комнатных и более квартир в Ростове-на-Дону: цены, площадь и фото вариантов.'
+            }
+        };
+
+        if (currentType && metaByType[currentType]) {
+            const m = metaByType[currentType];
+            const canonicalUrl = `https://gidplanirovok.ru/catalog.html?type=${currentType}`;
+
+            document.title = m.title;
+            document.getElementById('meta-title').innerText = m.title;
+            document.getElementById('meta-description').setAttribute('content', m.description);
+            document.getElementById('meta-og-title').setAttribute('content', m.title);
+            document.getElementById('meta-og-description').setAttribute('content', m.description);
+            document.getElementById('meta-og-url').setAttribute('content', canonicalUrl);
+            document.getElementById('meta-twitter-title').setAttribute('content', m.title);
+            document.getElementById('meta-twitter-description').setAttribute('content', m.description);
+            document.getElementById('meta-canonical').setAttribute('href', canonicalUrl);
+        }
 
         // Текущее состояние сортировки: null (не сортировано), либо {field: 'price'|'area', direction: 'desc'|'asc'}
         let currentSort = null;

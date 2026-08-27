@@ -3,7 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Детали планировки</title>
+    <title>Детали планировки — Гид Планировок</title>
+    <meta name="robots" content="noindex, follow">
+
+    <link rel="icon" type="image/svg+xml" href="img/logg.svg">
+    <link rel="alternate icon" href="img/logg.svg">
+    <link rel="apple-touch-icon" href="img/logg.svg">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -91,24 +97,6 @@
             let url = "https://wa.me/" + phone + "?text=" + encodeURIComponent(message);
             window.open(url, '_blank');
         }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const params = new URLSearchParams(window.location.search);
-            const imgElement = document.getElementById('selected-image');
-            const priceElement = document.getElementById('selected-price');
-            const numberElement = document.getElementById('selected-number');
-            if (imgElement) {
-                const imgPath = params.get('img');
-                if (imgPath) {
-                    imgElement.src = imgPath;
-                }
-            } else {
-                console.error("Ошибка: элемент с id 'selected-image' не найден в HTML!");
-            }
-            if (priceElement) priceElement.innerText = `от ${params.get('price') || '0'} ₽`;
-            if (numberElement) numberElement.innerText = params.get('number') || '';
-        });
     </script>
 </body>
 </html>
