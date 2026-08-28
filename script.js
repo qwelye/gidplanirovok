@@ -1,33 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==========================================
-    // 1. АНИМАЦИЯ / ВЫБОР В ОПРОСНИКЕ (КВИЗЕ)
-    // ==========================================
-    // Находим все карточки/варианты в опроснике.
-    // Замените '.quiz-option' на ваш класс блока с картинкой/цветом (например, '.quiz__item' или '.option-card')
-    const quizOptions = document.querySelectorAll('.quiz-option, [data-quiz-option]');
-
-    quizOptions.forEach(option => {
-        // Поддержка клика на ПК и тапа на мобильных
-        const handleSelect = (e) => {
-            // Если это список с одиночным выбором (радио-кнопки):
-            // Снимаем класс 'active' со всех соседних вариантов в этом же вопросе
-            const parentBlock = option.closest('.quiz-question') || option.parentElement;
-            if (parentBlock) {
-                parentBlock.querySelectorAll('.quiz-option, [data-quiz-option]').forEach(item => {
-                    item.classList.remove('active');
-                });
-            }
-
-            // Добавляем класс 'active' выбранному элементу
-            option.classList.add('active');
-        };
-
-        option.addEventListener('click', handleSelect);
-    });
-
-    // ==========================================
-    // 3. ПЛАВНАЯ НАВИГАЦИЯ И СКРОЛЛ К ЯКОРЮ
+    // 1. ПЛАВНАЯ НАВИГАЦИЯ И СКРОЛЛ К ЯКОРЮ
     // ==========================================
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
@@ -54,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 4. УМНАЯ ПОЧТОВАЯ ССЫЛКА
+    // 2. УМНАЯ ПОЧТОВАЯ ССЫЛКА
     // ==========================================
     const smartMailLink = document.getElementById('smart-mail-link');
     if (smartMailLink) {
@@ -72,39 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ==========================================
-    // 5. ЗАЩИТА ИЗОБРАЖЕНИЙ ОТ СКАТИВАНИЯ / КЛИКА
+    // 3. ЗАЩИТА ИЗОБРАЖЕНИЙ ОТ СКАЧИВАНИЯ / КЛИКА
     // ==========================================
     document.querySelectorAll('img').forEach(function(img) {
         img.addEventListener('contextmenu', e => e.preventDefault());
         img.addEventListener('dragstart', e => e.preventDefault());
-    });
-
-    // ОДИНОЧНЫЙ ВЫБОР (Вопросы 3-6) с комфортной паузой
-    document.querySelectorAll('[data-single]').forEach(group => {
-        const key = group.dataset.single;
-        const panelId = group.dataset.panel;
-        const nextStep = group.dataset.next;
-        const dotNum = parseInt(group.dataset.dot, 10);
-
-        group.querySelectorAll('.survey-option').forEach(opt => {
-            opt.addEventListener('click', () => {
-                stopAutoPreviewRotation();
-
-                group.querySelectorAll('.survey-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                answers[key] = opt.dataset.value;
-
-                if (panelId && opt.dataset.overlay) {
-                    clearPanelVisuals(panelId);
-                    setPreview(panelId, opt.dataset.overlay);
-                }
-
-                // Задержка 500мс дает пользователю увидеть свой выбор перед плавным переходом
-                setTimeout(() => {
-                    goToStep(nextStep, dotNum);
-                }, 500);
-            });
-        });
     });
 
 });
